@@ -27,6 +27,14 @@ namespace MyMobiz
             //added dbContex and connection string
             services.AddDbContext<mymobiztestContext>(options =>
         options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddSwaggerGen(options=>
+            {
+                options.SwaggerDoc("v1",
+                   new Microsoft.OpenApi.Models.OpenApiInfo
+                   {
+                       Title="MyMobiz Open Api",
+                   });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +54,11 @@ namespace MyMobiz
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("swagger", "SwaggerAPI");
             });
         }
     }

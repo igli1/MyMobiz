@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyMobiz.Models;
+using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 
 namespace MyMobiz.Controllers
 {
@@ -40,6 +43,7 @@ namespace MyMobiz.Controllers
 
             return quotes;
         }
+
 
         // PUT: api/Quotes/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
@@ -97,6 +101,59 @@ namespace MyMobiz.Controllers
             }
 
             return CreatedAtAction("GetQuotes", new { id = quotes.Id }, quotes);
+        }
+        /*[HttpPost("calculate")]
+        [Obsolete]
+        public ActionResult<CalculatedQuote> CalculateQuote(Places departure, Places destination)
+        {
+
+            var sqlCommand = "INSERT INTO places (address, lat, lng) VALUES(@Address, @Lat, @Lng)";
+            //departure
+            var adressParam = new MySqlParameter("@Address", departure.Address);
+            var latParam = new MySqlParameter("@Lat", departure.Lat);
+            var lngParam = new MySqlParameter("@Lng", departure.Lng);
+            _context.Database.ExecuteSqlCommand(sqlCommand, adressParam, latParam, lngParam);
+            //destionation
+            var adressParam2 = new MySqlParameter("@Address", destination.Address);
+            var latParam2 = new MySqlParameter("@Lat", destination.Lat);
+            var lngParam2 = new MySqlParameter("@Lng", destination.Lng);
+            _context.Database.ExecuteSqlCommand(sqlCommand, adressParam2, latParam2, lngParam2);
+
+
+            return Ok(null);
+        }*/
+        [HttpPost("calculate")]
+        [Obsolete]
+        public ActionResult<CalculatedQuote> CalculateQuote(CalculatedQuote calculatedQuote)
+        {
+
+            var placesSql = "INSERT INTO places (address, lat, lng) VALUES(@Address, @Lat, @Lng)";
+            //departure
+            var adressParam = new MySqlParameter("@Address", calculatedQuote.departure.Address);
+            var latParam = new MySqlParameter("@Lat", calculatedQuote.departure.Lat);
+            var lngParam = new MySqlParameter("@Lng", calculatedQuote.departure.Lng);
+            _context.Database.ExecuteSqlCommand(placesSql, adressParam, latParam, lngParam);
+            //destionation
+            var adressParam2 = new MySqlParameter("@Address", calculatedQuote.destination.Address);
+            var latParam2 = new MySqlParameter("@Lat", calculatedQuote.destination.Lat);
+            var lngParam2 = new MySqlParameter("@Lng", calculatedQuote.destination.Lng);
+            _context.Database.ExecuteSqlCommand(placesSql, adressParam2, latParam2, lngParam2);
+
+            //legs
+            var legsSql = "INSERT INTO legs(FromPlaceID, ToPlaceID) VALUES(LAST_INSERT_ID()-1, LAST_INSERT_ID())";
+            _context.Database.ExecuteSqlCommand(legsSql);
+
+            //rides
+            var ridesSql = "INSERT INTO rides(ID) VALUES(@ID)";
+            var ridesIDParam2 = new MySqlParameter("@ID", calculatedQuote.rides.Id);
+            _context.Database.ExecuteSqlCommand(ridesSql);
+
+            //ridesLegs
+            /*var ridesSql = "INSERT INTO rides(ID) VALUES(@ID)";
+            var ridesIDParam2 = new MySqlParameter("@ID", calculatedQuote.rides.Id);
+            _context.Database.ExecuteSqlCommand(ridesSql);*/
+
+            return Ok(null);
         }
 
         // DELETE: api/Quotes/5
