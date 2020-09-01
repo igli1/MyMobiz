@@ -8,7 +8,7 @@ using MyMobiz.Models;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-
+using Microsoft.OpenApi.Models;
 namespace MyMobiz
 {
     public class Startup
@@ -35,15 +35,8 @@ namespace MyMobiz
                 services.AddDbContext<mymobiztestContext>(options =>
                 options.UseMySql(Configuration.GetConnectionString("DbTestConnection")));
             }
-            services.AddSwaggerGen(options=>
-            {
-                options.SwaggerDoc("v1",
-                   new Microsoft.OpenApi.Models.OpenApiInfo
-                   {
-                       Title="MyMobiz Open Api",
-                   });
-            });
-           
+            services.AddSwaggerGen();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +46,10 @@ namespace MyMobiz
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseSwagger(c =>
+            {
+                c.SerializeAsV2 = true;
+            });
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
@@ -62,9 +59,10 @@ namespace MyMobiz
                 endpoints.MapControllers();
             });
             app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            app.UseSwaggerUI(c =>
             {
-                options.SwaggerEndpoint("swagger", "SwaggerAPI");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyMobiz V1.0");
+                c.RoutePrefix = string.Empty;
             });
         }
     }

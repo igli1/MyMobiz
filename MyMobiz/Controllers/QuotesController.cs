@@ -112,14 +112,16 @@ namespace MyMobiz.Controllers
             //    dynamic jsonRequest
             // var model = JsonConvert.DeserializeObject<dynamic>(Convert.ToString(jsonRequest));
             //var places = JsonConvert.DeserializeObject<List<Placess>>(jsonRequest["Places"].ToString());
-            var places= JsonConvert.DeserializeObject<List<Placess>>(dTCalculateQuote.Places);
-            var Legs= JsonConvert.DeserializeObject<List<Legs>>(dTCalculateQuote.Legs);
+            
             /*if(_context.Referers.Any(e=>e.Referer== Request.Headers["Referer"].ToString()))
             {
 
             }*/
             if (_context.Services.Any(e => e.Id == dTCalculateQuote.ServiceID && e.ApiKey== dTCalculateQuote.ServiceKey))
             {
+                var places = JsonConvert.DeserializeObject<List<Placess>>(dTCalculateQuote.Places);
+                var Legs = JsonConvert.DeserializeObject<List<Legs>>(dTCalculateQuote.Legs);
+                
                 CalculatedQuote calculateQuote = new CalculatedQuote();
                 calculateQuote.departure = places[0];
                 calculateQuote.destination = places[1];
