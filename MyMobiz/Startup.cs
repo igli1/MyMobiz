@@ -4,9 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using MyMobiz.Models;
-using MySql.Data.MySqlClient;
+using System.Diagnostics;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace MyMobiz
 {
@@ -22,11 +23,18 @@ namespace MyMobiz
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddControllers();
-
+            services.AddControllers().AddNewtonsoftJson();
+            
             //added dbContex and connection string
-            services.AddDbContext<mymobiztestContext>(options =>
-        options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+            // checking if app is on debug mode
+
+            if (Debugger.IsAttached)
+            {
+                services.AddDbContext<mymobiztestContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("DbTestConnection")));
+            }
             services.AddSwaggerGen(options=>
             {
                 options.SwaggerDoc("v1",
@@ -35,6 +43,7 @@ namespace MyMobiz
                        Title="MyMobiz Open Api",
                    });
             });
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,11 +53,8 @@ namespace MyMobiz
             {
                 app.UseDeveloperExceptionPage();
             }
-
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

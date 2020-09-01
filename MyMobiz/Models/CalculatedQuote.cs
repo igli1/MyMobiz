@@ -7,8 +7,8 @@ namespace MyMobiz.Models
 {
     public class CalculatedQuote
     {
-        public Places destination{get;set;}
-        public Places departure { get; set; }
+        public Placess destination{get;set;}
+        public Placess departure { get; set; }
         public Legs legs { get; set; }
         public Rideslegs ridesLegs { get; set; }
         public Rides rides { get; set; }

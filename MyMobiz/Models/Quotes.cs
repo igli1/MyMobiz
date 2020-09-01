@@ -15,7 +15,7 @@ namespace MyMobiz.Models
         public int RefererId { get; set; }
         public string RideId { get; set; }
         public int? VerNum { get; set; }
-        public double? Price = 100;
+        public double? Price { get; set; }
         
         public virtual Referers Referer { get; set; }
         public virtual Rides Ride { get; set; }

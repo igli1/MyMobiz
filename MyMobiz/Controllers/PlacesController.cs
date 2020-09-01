@@ -22,14 +22,14 @@ namespace MyMobiz.Controllers
 
         // GET: api/Places
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Places>>> GetPlaces()
+        public async Task<ActionResult<IEnumerable<Placess>>> GetPlaces()
         {
             return await _context.Places.ToListAsync();
         }
 
         // GET: api/Places/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Places>> GetPlaces(int id)
+        public async Task<ActionResult<Placess>> GetPlaces(int id)
         {
             var places = await _context.Places.FindAsync(id);
 
@@ -45,7 +45,7 @@ namespace MyMobiz.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPlaces(int id, Places places)
+        public async Task<IActionResult> PutPlaces(int id, Placess places)
         {
             if (id != places.Id)
             {
@@ -77,7 +77,7 @@ namespace MyMobiz.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Places>> PostPlaces(Places places)
+        public async Task<ActionResult<Placess>> PostPlaces(Placess places)
         {
             _context.Places.Add(places);
             await _context.SaveChangesAsync();
@@ -87,7 +87,7 @@ namespace MyMobiz.Controllers
 
         // DELETE: api/Places/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Places>> DeletePlaces(int id)
+        public async Task<ActionResult<Placess>> DeletePlaces(int id)
         {
             var places = await _context.Places.FindAsync(id);
             if (places == null)

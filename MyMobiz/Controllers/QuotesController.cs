@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyMobiz.Models;
+using Newtonsoft.Json;
 using System.Data.SqlClient;
 using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json.Linq;
 
 namespace MyMobiz.Controllers
 {
@@ -102,60 +104,57 @@ namespace MyMobiz.Controllers
 
             return CreatedAtAction("GetQuotes", new { id = quotes.Id }, quotes);
         }
-        /*[HttpPost("calculate")]
-        [Obsolete]
-        public ActionResult<CalculatedQuote> CalculateQuote(Places departure, Places destination)
-        {
 
-            var sqlCommand = "INSERT INTO places (address, lat, lng) VALUES(@Address, @Lat, @Lng)";
-            //departure
-            var adressParam = new MySqlParameter("@Address", departure.Address);
-            var latParam = new MySqlParameter("@Lat", departure.Lat);
-            var lngParam = new MySqlParameter("@Lng", departure.Lng);
-            _context.Database.ExecuteSqlCommand(sqlCommand, adressParam, latParam, lngParam);
-            //destionation
-            var adressParam2 = new MySqlParameter("@Address", destination.Address);
-            var latParam2 = new MySqlParameter("@Lat", destination.Lat);
-            var lngParam2 = new MySqlParameter("@Lng", destination.Lng);
-            _context.Database.ExecuteSqlCommand(sqlCommand, adressParam2, latParam2, lngParam2);
-
-
-            return Ok(null);
-        }*/
         [HttpPost("calculate")]
-        [Obsolete]
-        public ActionResult<CalculatedQuote> CalculateQuote(CalculatedQuote calculatedQuote)
+        public async Task<ActionResult<DTCalculateQuote>> DTCalculateQuote(DTCalculateQuote dTCalculateQuote)
         {
+            //  [FromBody]
+            //    dynamic jsonRequest
+            // var model = JsonConvert.DeserializeObject<dynamic>(Convert.ToString(jsonRequest));
+            //var places = JsonConvert.DeserializeObject<List<Placess>>(jsonRequest["Places"].ToString());
+            var places= JsonConvert.DeserializeObject<List<Placess>>(dTCalculateQuote.Places);
+            var Legs= JsonConvert.DeserializeObject<List<Legs>>(dTCalculateQuote.Legs);
+            /*if(_context.Referers.Any(e=>e.Referer== Request.Headers["Referer"].ToString()))
+            {
 
-            var placesSql = "INSERT INTO places (address, lat, lng) VALUES(@Address, @Lat, @Lng)";
-            //departure
-            var adressParam = new MySqlParameter("@Address", calculatedQuote.departure.Address);
-            var latParam = new MySqlParameter("@Lat", calculatedQuote.departure.Lat);
-            var lngParam = new MySqlParameter("@Lng", calculatedQuote.departure.Lng);
-            _context.Database.ExecuteSqlCommand(placesSql, adressParam, latParam, lngParam);
-            //destionation
-            var adressParam2 = new MySqlParameter("@Address", calculatedQuote.destination.Address);
-            var latParam2 = new MySqlParameter("@Lat", calculatedQuote.destination.Lat);
-            var lngParam2 = new MySqlParameter("@Lng", calculatedQuote.destination.Lng);
-            _context.Database.ExecuteSqlCommand(placesSql, adressParam2, latParam2, lngParam2);
-
-            //legs
-            var legsSql = "INSERT INTO legs(FromPlaceID, ToPlaceID) VALUES(LAST_INSERT_ID()-1, LAST_INSERT_ID())";
-            _context.Database.ExecuteSqlCommand(legsSql);
-
-            //rides
-            var ridesSql = "INSERT INTO rides(ID) VALUES(@ID)";
-            var ridesIDParam2 = new MySqlParameter("@ID", calculatedQuote.rides.Id);
-            _context.Database.ExecuteSqlCommand(ridesSql);
-
-            //ridesLegs
-            /*var ridesSql = "INSERT INTO rides(ID) VALUES(@ID)";
-            var ridesIDParam2 = new MySqlParameter("@ID", calculatedQuote.rides.Id);
-            _context.Database.ExecuteSqlCommand(ridesSql);*/
-
-            return Ok(null);
+            }*/
+            if (_context.Services.Any(e => e.Id == dTCalculateQuote.ServiceID && e.ApiKey== dTCalculateQuote.ServiceKey))
+            {
+                CalculatedQuote calculateQuote = new CalculatedQuote();
+                calculateQuote.departure = places[0];
+                calculateQuote.destination = places[1];
+                await _context.Places.AddAsync(calculateQuote.departure);
+                await _context.Places.AddAsync(calculateQuote.destination);
+                await _context.SaveChangesAsync();
+                calculateQuote.legs = Legs[0];
+                calculateQuote.legs.FromPlaceId = calculateQuote.departure.Id;
+                calculateQuote.legs.ToPlaceId = calculateQuote.destination.Id;
+                await _context.Legs.AddAsync(calculateQuote.legs);
+                Rides rides = new Rides();
+                rides.Id = RidesNextID();
+                await _context.Rides.AddAsync(rides);
+                await _context.SaveChangesAsync();    
+                Quotes quotes = new Quotes();
+                quotes.Id = QuoteNextID();   
+                quotes.RefererId = 1;
+                quotes.ServiceId = dTCalculateQuote.ServiceID;
+               // quotes.VerNum = calculateQuote.quotes.VerNum;
+                quotes.RideId = rides.Id;
+                /*calculateQuote.quotes.ServiceId = quotes.ServiceId;
+                calculateQuote.quotes.RideId = calculateQuote.rides.Id;
+                calculateQuote.quotes.RefererId = 1;
+                calculateQuote.quotes.Id = quotes.Id;*/
+                await _context.Quotes.AddAsync(quotes);
+                Rideslegs ridesLegs = new Rideslegs();
+                ridesLegs.LegId = calculateQuote.legs.Id;
+                ridesLegs.RideId = rides.Id;
+                await _context.Rideslegs.AddAsync(ridesLegs);
+                await _context.SaveChangesAsync();
+                
+                return CreatedAtAction("GetQuotes", new { id = quotes.Id }, quotes);
+            }
+            return StatusCode(StatusCodes.Status401Unauthorized);         
         }
-
         // DELETE: api/Quotes/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Quotes>> DeleteQuotes(string id)
@@ -175,6 +174,69 @@ namespace MyMobiz.Controllers
         private bool QuotesExists(string id)
         {
             return _context.Quotes.Any(e => e.Id == id);
+        }
+        private string QuoteNextID()
+        {
+            string year = DateTime.Parse(DateTime.Now.ToString()).Year.ToString();
+            string maxValue = _context.Quotes.Max(e => e.Id);
+            if (maxValue != null)
+            {
+                
+                string[] value = maxValue.Split('Q');
+                if (year == value[0])
+                {
+                    int Id;
+                    string output = "1";
+                    try
+                    {
+                        Id = (Convert.ToInt32(value[1]) + 1);
+                        if (Id <= 999999)
+                            output = String.Format("{0}{1}{2:D6}", year, "Q", Id);
+                        else
+                            return null;
+                    }
+                    catch (FormatException)
+                    {
+                        return null;
+                    }
+                    return output;
+                }
+                else
+                    return year + "Q000001";
+            }
+                
+            return year+"Q000001";
+        }
+        private string RidesNextID()
+        {
+            string year = DateTime.Parse(DateTime.Now.ToString()).Year.ToString();
+            string maxValue = _context.Rides.Max(e => e.Id);
+            if (maxValue != null)
+            {
+                string[] value = maxValue.Split('R');
+                if (year == value[0])
+                {
+                    int Id;
+                    string output = "1";
+                    try
+                    {
+                        Id = (Convert.ToInt32(value[1]) + 1);
+                        if (Id <= 999999)
+                            output = String.Format("{0}{1}{2:D6}", year, "R", Id);
+                        else
+                            return null;
+                    }
+                    catch (FormatException)
+                    {
+                        return null;
+                    }
+                    return output;
+                }
+                else
+                    return year + "R000001";
+            }
+                    
+            return year + "R000001";
         }
     }
 }

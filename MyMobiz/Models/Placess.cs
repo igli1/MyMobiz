@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace MyMobiz.Models
 {
-    public partial class Places
+    public partial class Placess
     {
-        public Places()
+        public Placess()
         {
             LegsFromPlace = new HashSet<Legs>();
             LegsToPlace = new HashSet<Legs>();
