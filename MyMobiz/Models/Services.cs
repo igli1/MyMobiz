@@ -20,5 +20,6 @@ namespace MyMobiz.Models
 
         public virtual ICollection<Quotes> Quotes { get; set; }
         public virtual ICollection<Referers> Referers { get; set; }
+        public virtual ICollection<Servicerates> Servicerates { get; set; }
     }
 }

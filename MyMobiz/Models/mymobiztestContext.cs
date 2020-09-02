@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-
+using MyMobiz.Models;
 namespace MyMobiz.Models
 {
     public partial class mymobiztestContext : DbContext
@@ -23,8 +23,17 @@ namespace MyMobiz.Models
         public virtual DbSet<Referers> Referers { get; set; }
         public virtual DbSet<Rides> Rides { get; set; }
         public virtual DbSet<Rideslegs> Rideslegs { get; set; }
+        public virtual DbSet<Servicerates> Servicerates { get; set; }
         public virtual DbSet<Services> Services { get; set; }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=198.38.85.103;database=mymobiztest;uid=igli;pwd=igli123", x => x.ServerVersion("5.6.48-mysql"));
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -234,8 +243,8 @@ namespace MyMobiz.Models
 
                 entity.Property(e => e.Tsu)
                     .HasColumnName("TSU")
-                    .HasColumnType("datetime");
-                    //.ValueGeneratedOnAddOrUpdate();
+                    .HasColumnType("datetime")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.HasOne(d => d.Service)
                     .WithMany(p => p.Referers)
@@ -315,6 +324,40 @@ namespace MyMobiz.Models
                     .HasConstraintName("rideslegs_ibfk_1");
             });
 
+            modelBuilder.Entity<Servicerates>(entity =>
+            {
+                entity.HasKey(e => e.VerNum)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("servicerates");
+
+                entity.HasIndex(e => e.ServiceId)
+                    .HasName("ServiceID");
+
+                entity.Property(e => e.VerNum).HasColumnType("int(11)");
+
+                entity.Property(e => e.AppDate)
+                    .HasColumnName("appDate")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.DefDate)
+                    .HasColumnName("defDate")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.ServiceId)
+                    .IsRequired()
+                    .HasColumnName("ServiceID")
+                    .HasColumnType("char(10)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.HasOne(d => d.Service)
+                    .WithMany(p => p.Servicerates)
+                    .HasForeignKey(d => d.ServiceId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("servicerates_ibfk_1");
+            });
+
             modelBuilder.Entity<Services>(entity =>
             {
                 entity.ToTable("services");
@@ -346,8 +389,9 @@ namespace MyMobiz.Models
 
                 entity.Property(e => e.Tsu)
                     .HasColumnName("TSU")
-                    .HasColumnType("datetime");
-                    //.ValueGeneratedOnAddOrUpdate();
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .ValueGeneratedOnAddOrUpdate();
             });
 
             OnModelCreatingPartial(modelBuilder);
