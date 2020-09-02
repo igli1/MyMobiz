@@ -104,55 +104,65 @@ namespace MyMobiz.Controllers
 
             return CreatedAtAction("GetQuotes", new { id = quotes.Id }, quotes);
         }
-
+        //Calculating Qoutes
         [HttpPost("calculate")]
         public async Task<ActionResult<DTCalculateQuote>> DTCalculateQuote(DTCalculateQuote dTCalculateQuote)
         {
-            //  [FromBody]
-            //    dynamic jsonRequest
-            // var model = JsonConvert.DeserializeObject<dynamic>(Convert.ToString(jsonRequest));
-            //var places = JsonConvert.DeserializeObject<List<Placess>>(jsonRequest["Places"].ToString());
-            
+            //Check http Referer   
             /*if(_context.Referers.Any(e=>e.Referer== Request.Headers["Referer"].ToString()))
             {
 
             }*/
+            //Check Services ID and ApiKey
             if (_context.Services.Any(e => e.Id == dTCalculateQuote.ServiceID && e.ApiKey== dTCalculateQuote.ServiceKey))
             {
-                var places = JsonConvert.DeserializeObject<List<Placess>>(dTCalculateQuote.Places);
+                //Deserialize places and legs JSON
+                var places = JsonConvert.DeserializeObject<List<Places>>(dTCalculateQuote.Places);
                 var Legs = JsonConvert.DeserializeObject<List<Legs>>(dTCalculateQuote.Legs);
-                
-                CalculatedQuote calculateQuote = new CalculatedQuote();
-                calculateQuote.departure = places[0];
-                calculateQuote.destination = places[1];
-                await _context.Places.AddAsync(calculateQuote.departure);
-                await _context.Places.AddAsync(calculateQuote.destination);
+                List<Places> place = new List<Places>();
+                List<Legs> legs = new List<Legs>();
+                //Inserting Places to database Format: Departure, Wp1, Wp2, Destination
+                for (int i=0; i < places.Count; i++)
+                {
+                    place.Add(places[i]);
+                    await _context.Places.AddAsync(place[i]);
+                }
                 await _context.SaveChangesAsync();
-                calculateQuote.legs = Legs[0];
-                calculateQuote.legs.FromPlaceId = calculateQuote.departure.Id;
-                calculateQuote.legs.ToPlaceId = calculateQuote.destination.Id;
-                await _context.Legs.AddAsync(calculateQuote.legs);
+                //Inserting Legs to database Format: Departure->Wp1, Wp1->Wp2, Wp2->Destination
+                for (int i = 0; i < Legs.Count; i++)
+                {
+                    legs.Add(Legs[i]);
+                    legs[i].FromPlaceId = place[i].Id;
+                   legs[i].ToPlaceId = place[i+1].Id;
+                    await _context.Legs.AddAsync(legs[i]);
+                }
+                //Inserting Rides to database
                 Rides rides = new Rides();
-                rides.Id = RidesNextID();
+                rides.Id = RidesNextID(); //Getting Rides ID from RidesNextID();
                 await _context.Rides.AddAsync(rides);
-                await _context.SaveChangesAsync();    
+                await _context.SaveChangesAsync();
+                //Inserting Quotes to database
                 Quotes quotes = new Quotes();
-                quotes.Id = QuoteNextID();   
-                quotes.RefererId = 1;
+                quotes.Id = QuoteNextID();   //Getting Quotes ID from QuotesNextID();
+                quotes.RefererId = 5;
                 quotes.ServiceId = dTCalculateQuote.ServiceID;
-               // quotes.VerNum = calculateQuote.quotes.VerNum;
                 quotes.RideId = rides.Id;
-                /*calculateQuote.quotes.ServiceId = quotes.ServiceId;
-                calculateQuote.quotes.RideId = calculateQuote.rides.Id;
-                calculateQuote.quotes.RefererId = 1;
-                calculateQuote.quotes.Id = quotes.Id;*/
+                quotes.Price = 500;
                 await _context.Quotes.AddAsync(quotes);
-                Rideslegs ridesLegs = new Rideslegs();
-                ridesLegs.LegId = calculateQuote.legs.Id;
-                ridesLegs.RideId = rides.Id;
-                await _context.Rideslegs.AddAsync(ridesLegs);
+                //Inserting RidesLegs to database
+                List<Rideslegs> ridesLegsList = new List<Rideslegs>();
+                Rideslegs rideslLegs = new Rideslegs();
+                for (int i = 0; i < legs.Count; i++)
+                {
+                    ridesLegsList.Add(rideslLegs);
+                    ridesLegsList[i].LegId = legs[i].Id;
+                    ridesLegsList[i].RideId = rides.Id;
+                    ridesLegsList[i].Seqnr = i + 1;
+                    await _context.Rideslegs.AddAsync(ridesLegsList[i]);
+                }       
                 await _context.SaveChangesAsync();
                 
+                //Returning calculated Quote
                 return CreatedAtAction("GetQuotes", new { id = quotes.Id }, quotes);
             }
             return StatusCode(StatusCodes.Status401Unauthorized);         
@@ -177,6 +187,7 @@ namespace MyMobiz.Controllers
         {
             return _context.Quotes.Any(e => e.Id == id);
         }
+        //Generating Quote ID
         private string QuoteNextID()
         {
             string year = DateTime.Parse(DateTime.Now.ToString()).Year.ToString();
@@ -209,6 +220,7 @@ namespace MyMobiz.Controllers
                 
             return year+"Q000001";
         }
+        //Generating Rides ID
         private string RidesNextID()
         {
             string year = DateTime.Parse(DateTime.Now.ToString()).Year.ToString();

@@ -18,7 +18,7 @@ namespace MyMobiz.Models
         public virtual DbSet<Clients> Clients { get; set; }
         public virtual DbSet<Legs> Legs { get; set; }
         public virtual DbSet<Orders> Orders { get; set; }
-        public virtual DbSet<Placess> Places { get; set; }
+        public virtual DbSet<Places> Places { get; set; }
         public virtual DbSet<Quotes> Quotes { get; set; }
         public virtual DbSet<Referers> Referers { get; set; }
         public virtual DbSet<Rides> Rides { get; set; }
@@ -123,7 +123,7 @@ namespace MyMobiz.Models
                     .HasConstraintName("orders_ibfk_1");
             });
 
-            modelBuilder.Entity<Placess>(entity =>
+            modelBuilder.Entity<Places>(entity =>
             {
                 entity.ToTable("places");
 

@@ -18,8 +18,8 @@ namespace MyMobiz.Models
         public int? MinutesWithTraffic { get; set; }
         public double? Fare { get; set; }
 
-        public virtual Placess FromPlace { get; set; }
-        public virtual Placess ToPlace { get; set; }
+        public virtual Places FromPlace { get; set; }
+        public virtual Places ToPlace { get; set; }
         public virtual ICollection<Rideslegs> Rideslegs { get; set; }
     }
 }

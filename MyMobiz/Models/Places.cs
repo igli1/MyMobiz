@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace MyMobiz.Models
 {
-    public partial class Placess
+    public partial class Places
     {
-        public Placess()
+        public Places()
         {
             LegsFromPlace = new HashSet<Legs>();
             LegsToPlace = new HashSet<Legs>();
@@ -18,5 +18,10 @@ namespace MyMobiz.Models
 
         public virtual ICollection<Legs> LegsFromPlace { get; set; }
         public virtual ICollection<Legs> LegsToPlace { get; set; }
+
+        public static implicit operator List<object>(Places v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
