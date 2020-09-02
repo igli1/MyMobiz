@@ -147,7 +147,12 @@ namespace MyMobiz.Controllers
                 quotes.RefererId = 5;
                 quotes.ServiceId = dTCalculateQuote.ServiceID;
                 quotes.RideId = rides.Id;
-                quotes.Price = 500;
+                
+                //Getting VerNum
+                Servicerates serviceRates = await _context.Servicerates.FirstOrDefaultAsync(e => e.ServiceId == dTCalculateQuote.ServiceID);
+                quotes.VerNum = serviceRates.VerNum;
+                //Calculating Price
+                quotes.Price = (serviceRates.EurKm * dTCalculateQuote.Kms) + (serviceRates.EurWaitMin * dTCalculateQuote.DriveTime);
                 await _context.Quotes.AddAsync(quotes);
                 //Inserting RidesLegs to database
                 List<Rideslegs> ridesLegsList = new List<Rideslegs>();
