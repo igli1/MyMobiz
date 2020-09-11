@@ -154,64 +154,53 @@ namespace MyMobiz.Controllers
             });
             return CreatedAtAction("GetQuotes", new { id = quote.Id }, quote);
         }
-        public  async Task <bool>Calculate(DTCalculateQuote dtCalculateQuote, CancellationToken ct)
+        public  async Task Calculate(DTCalculateQuote dtCalculateQuote, CancellationToken ct)
         {
             using (var scope = _scopeFactory.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
-                try
-                {
+                    var context = scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
                     List<Places> places = new List<Places>();
-                    Places p = new Places();
                     for (int i = 0; i < dtCalculateQuote.places.Count; i++)
                     {
-                        p.Address = dtCalculateQuote.places[i].Address;
-                        p.Lat = dtCalculateQuote.places[i].Lat;
-                        p.Lng = dtCalculateQuote.places[i].Lng;
-                        places.Add(p);
-                        System.Diagnostics.Debug.WriteLine("Address: " + places[i].Address);
-                        
+                        places.Add(new Places());
+                        places[i].Address = dtCalculateQuote.places[i].Address;
+                        places[i].Lat = dtCalculateQuote.places[i].Lat;
+                        places[i].Lng = dtCalculateQuote.places[i].Lng;                       
                     }
-                    places.ForEach(n => context.Places.Add(n));
-                    // Inserting Places to DB and Sorting them
-                    int departure = 0;
-                    int waypointOrder = 1;
-                    System.Diagnostics.Debug.WriteLine("Places count: "+places.Count);
-                    /* for (int i = 0; i < places.Count; i++)
-                     {
-                         if (dtCalculateQuote.places[i].JsId == "bd-address-from" && departure == 0)
-                         {
-                             departure = 1;
-                             await context.Places.AddAsync(places[i]);
-                             System.Diagnostics.Debug.WriteLine("Departure Added");
-                         }
-                         else if (departure == 1)
-                         {
-                             for (int j = 0; j < places.Count; j++)
-                             {
-                                 if (dtCalculateQuote.places[j].JsId == "bd-address-via" + waypointOrder && waypointOrder <= dtCalculateQuote.places.Count - 2)
-                                 {
-                                     System.Diagnostics.Debug.WriteLine("waypoints Added" + waypointOrder);
-                                     waypointOrder += 1;
-                                     await context.Places.AddAsync(places[i]);
-
-                                 }
-                                 else if (waypointOrder <= dtCalculateQuote.places.Count - 1 && dtCalculateQuote.places[i].JsId == "bd-address-to")
-                                 {
-                                     System.Diagnostics.Debug.WriteLine("Destination Added");
-                                     await context.Places.AddAsync(places[i]);
-                                 }
-                             }
-                         }
-                     }*/
-                    
-                    await context.SaveChangesAsync(ct);
-                }
-                catch (Exception e)
+                
+                // Inserting Places to DB and Sorting them
+                     int Order = 0;
+                List<Places> orderedPlaces = new List<Places>();
+                     for(int i = 0; i < places.Count; i++)
                 {
-                    System.Diagnostics.Debug.WriteLine("igli" + e.Message);
+                         for(int j=0; j < places.Count; j++)
+                    {
+                        if (dtCalculateQuote.places[j].JsId == "bd-address-from" && Order == 0)
+                        {
+                            Order = 1;
+                            await context.Places.AddAsync(places[j]);
+                            orderedPlaces.Add(places[j]);
+                        }
+                        else if( dtCalculateQuote.places[j].JsId == "bd-address-via" + Order && Order <= dtCalculateQuote.places.Count - 2){
+                            Order += 1;
+                            await context.Places.AddAsync(places[j]);
+                            orderedPlaces.Add(places[j]);
+                        }
+                        else if (Order == dtCalculateQuote.places.Count - 1 && dtCalculateQuote.places[j].JsId == "bd-address-to")
+                        {   
+                            await context.Places.AddAsync(places[j]);
+                            orderedPlaces.Add(places[j]);
+                            j = places.Count;
+                            i = places.Count;
+                        }
+                    }
                 }
-                return true;
+                await context.SaveChangesAsync(ct);
+                for (int i = 0; i < orderedPlaces.Count; i++)
+                {
+                    System.Diagnostics.Debug.WriteLine(orderedPlaces[i].Id);
+                    System.Diagnostics.Debug.WriteLine(orderedPlaces[i].Address);
+                }
             }
         }
     }
