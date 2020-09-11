@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-
+using MyMobiz.Models.DTOs;
 namespace MyMobiz.Models
 {
     //Calculate Quote Model
@@ -13,8 +13,8 @@ namespace MyMobiz.Models
     {
         public string ServiceID { get; set; }
         public string ServiceKey { get; set; }
-       // public DateTime DateTimePickupTh { get; set; }
-       // public DateTime DateTimeArrivalTh { get; set; }
+        public DateTime DateTimePickupTh { get; set; }
+        public DateTime DateTimeArrivalTh { get; set; }
         public string Language { get; set; }
         public string Veichle { get; set; }
         public Option Options { get; set; }
@@ -22,8 +22,8 @@ namespace MyMobiz.Models
         public int Kms { get; set; }
         public int DriveTime { get; set; }
         public int WaitTime { get; set; }
-        public string Places { get; set; } 
-        public string Legs { get; set; }
+        public List<DTPlaces> places { get; set; }
+        public List<Legs> legs { get; set; }
         public class Option
         {
             bool Luxury { get; set; }

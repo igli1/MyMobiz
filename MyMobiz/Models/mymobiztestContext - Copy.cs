@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using MyMobiz.Models;
 namespace MyMobiz.Models
 {
-    public partial class mymobiztestContext : DbContext
+    public partial class mymobiztestContext2 : DbContext
     {
-        public mymobiztestContext()
+        public mymobiztestContext2()
         {
         }
 
-        public mymobiztestContext(DbContextOptions<mymobiztestContext> options)
+        public mymobiztestContext2(DbContextOptions<mymobiztestContext2> options)
             : base(options)
         {
         }
