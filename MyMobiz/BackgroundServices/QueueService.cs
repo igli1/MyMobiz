@@ -19,19 +19,7 @@ namespace MyMobiz.BackgroundServices
             while (!stoppingToken.IsCancellationRequested)
             {
                 var task = await _queue.PopQueue(stoppingToken);
-
-                if (stoppingToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                using (var source = new CancellationTokenSource())
-                {
-                    source.CancelAfter(TimeSpan.FromMinutes(1));
-                    var timeoutToken = source.Token;
-
-                    await task(timeoutToken);
-                }
+                await task(stoppingToken);
             }
         }
     }

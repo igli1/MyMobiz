@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -7,14 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyMobiz.Models;
 using Newtonsoft.Json;
-using System.Data.SqlClient;
-using Microsoft.Data.SqlClient;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json.Linq;
-using System.Text;
 using MyMobiz.BackgroundServices;
 using MyMobiz.NextIDs;
-using MyMobiz.Models.DTOs;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -156,6 +149,7 @@ namespace MyMobiz.Controllers
         }
         public  async Task Calculate(DTCalculateQuote dtCalculateQuote, CancellationToken ct)
         {
+            System.Diagnostics.Debug.WriteLine("Igli");
             using (var scope = _scopeFactory.CreateScope())
             {
                     var context = scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
