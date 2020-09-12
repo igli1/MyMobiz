@@ -11,7 +11,6 @@ namespace MyMobiz.Models
         }
 
         public int Id { get; set; }
-        public string JsId { get; set; }
         public int FromPlaceId { get; set; }
         public int ToPlaceId { get; set; }
         public int? Kms { get; set; }

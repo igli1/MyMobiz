@@ -23,7 +23,7 @@ namespace MyMobiz.Models
         public int DriveTime { get; set; }
         public int WaitTime { get; set; }
         public List<DTPlaces> places { get; set; }
-        public List<Legs> legs { get; set; }
+        public List<DTLegs> legs { get; set; }
         public class Option
         {
             bool Luxury { get; set; }

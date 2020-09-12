@@ -10,6 +10,7 @@ using MyMobiz.BackgroundServices;
 using MyMobiz.NextIDs;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace MyMobiz.Controllers
 {
@@ -42,16 +43,16 @@ namespace MyMobiz.Controllers
             return quotes;
         }
         //Calculating Qoutes
-        [HttpPost]
+        /*[HttpPost]
         [Route("calculate")]
         public async Task<ActionResult<DTCalculateQuote>> DTCalculateQuote(DTCalculateQuote dTCalculateQuote)
         {
 
             //Check http Referer   
-            /*if(_context.Referers.Any(e=>e.Referer== Request.Headers["Referer"].ToString()))
+            if(_context.Referers.Any(e=>e.Referer== Request.Headers["Referer"].ToString()))
             {
 
-            }*/
+            }
             //Check Services ID and ApiKey
             if (_context.Services.Any(e => e.Id == dTCalculateQuote.ServiceID && e.ApiKey== dTCalculateQuote.ServiceKey))
             {
@@ -74,7 +75,7 @@ namespace MyMobiz.Controllers
                     legs[i].FromPlaceId = place[i].Id;
                    legs[i].ToPlaceId = place[i+1].Id;
                     await _context.Legs.AddAsync(legs[i]);
-                }*/
+                }
                 //Inserting Rides to database
                 Rides rides = new Rides();
                 //rides.Id = RidesNextID(); //Getting Rides ID from RidesNextID();
@@ -110,7 +111,7 @@ namespace MyMobiz.Controllers
                 return CreatedAtAction("GetQuotes", new { id = quotes.Id }, quotes);
             }
             return StatusCode(StatusCodes.Status401Unauthorized);        
-        }
+        }*/
         
         [HttpPost]
         [Route ("c")]
@@ -128,73 +129,110 @@ namespace MyMobiz.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetQuotes", new { id = quote.Id }, quote);
         }
+        // Accepting Post request from Route 'Api/Quotes/ca'
+        // Creating and returning a new Quote
+        // Initiating the Background Service
         [HttpPost]
         [Route("ca")]
         public async Task<ActionResult<DTCalculateQuote>> CalculateQuoteTasksAsync(DTCalculateQuote dtCalculateQuote)
         {
             //var result=await QuoteAsync(dtCalculateQuote.ServiceID, 5);
-            Quotes quote = new Quotes();
-            quote.Id = _quoteNextId.NextId();
+            Quotes quote = new Quotes(); //Creating a new Quote
+            quote.Id = _quoteNextId.NextId(); //Generating a new Quotes ID from QuotesNextID();
             quote.RefererId = 5;
             quote.ServiceId = dtCalculateQuote.ServiceID;
             quote.RideId = "2020R000023";
-            await _context.Quotes.AddAsync(quote);
-            await _context.SaveChangesAsync();
-            _queue.QueueTask(async token =>
+            await _context.Quotes.AddAsync(quote); // Adding Quote to COntext
+            await _context.SaveChangesAsync(); // Saving Changes
+            _queue.QueueTask(async token =>   // Initiating Background Service
             {
                 await Calculate(dtCalculateQuote, token);
                 
             });
-            return CreatedAtAction("GetQuotes", new { id = quote.Id }, quote);
+            return CreatedAtAction("GetQuotes", new { id = quote.Id }, quote); //Returning the new Quote
         }
+        //Background Service
+        //Inserting to Database Places, Legs, Rides and RidesLegs
         public  async Task Calculate(DTCalculateQuote dtCalculateQuote, CancellationToken ct)
         {
-            System.Diagnostics.Debug.WriteLine("Igli");
             using (var scope = _scopeFactory.CreateScope())
             {
-                    var context = scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
-                    List<Places> places = new List<Places>();
-                    for (int i = 0; i < dtCalculateQuote.places.Count; i++)
-                    {
-                        places.Add(new Places());
-                        places[i].Address = dtCalculateQuote.places[i].Address;
-                        places[i].Lat = dtCalculateQuote.places[i].Lat;
-                        places[i].Lng = dtCalculateQuote.places[i].Lng;                       
-                    }
-                
+                // Creating a new DB Context
+                var context = scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
                 // Inserting Places to DB and Sorting them
                      int Order = 0;
                 List<Places> orderedPlaces = new List<Places>();
-                     for(int i = 0; i < places.Count; i++)
+                     for(int i = 0; i < dtCalculateQuote.places.Count; i++)
                 {
-                         for(int j=0; j < places.Count; j++)
+                         for(int j=0; j < dtCalculateQuote.places.Count; j++)
                     {
                         if (dtCalculateQuote.places[j].JsId == "bd-address-from" && Order == 0)
                         {
+                            orderedPlaces.Add(new Places()); //Adding Departure to Collection
+                            orderedPlaces[Order].Address = dtCalculateQuote.places[j].Address;
+                            orderedPlaces[Order].Lat = dtCalculateQuote.places[j].Lat;
+                            orderedPlaces[Order].Lng = dtCalculateQuote.places[j].Lng; 
+                            await context.Places.AddAsync(orderedPlaces[Order]); //Inserting Places to Context
                             Order = 1;
-                            await context.Places.AddAsync(places[j]);
-                            orderedPlaces.Add(places[j]);
                         }
                         else if( dtCalculateQuote.places[j].JsId == "bd-address-via" + Order && Order <= dtCalculateQuote.places.Count - 2){
+                            orderedPlaces.Add(new Places()); //Adding Waypoints to Collection
+                            orderedPlaces[Order].Address = dtCalculateQuote.places[j].Address;
+                            orderedPlaces[Order].Lat = dtCalculateQuote.places[j].Lat;
+                            orderedPlaces[Order].Lng = dtCalculateQuote.places[j].Lng;            
+                            await context.Places.AddAsync(orderedPlaces[Order]); //Inserting Places to Context
                             Order += 1;
-                            await context.Places.AddAsync(places[j]);
-                            orderedPlaces.Add(places[j]);
                         }
                         else if (Order == dtCalculateQuote.places.Count - 1 && dtCalculateQuote.places[j].JsId == "bd-address-to")
-                        {   
-                            await context.Places.AddAsync(places[j]);
-                            orderedPlaces.Add(places[j]);
-                            j = places.Count;
-                            i = places.Count;
+                        {
+                            orderedPlaces.Add(new Places()); //Adding Destination to Collection
+                            orderedPlaces[Order].Address = dtCalculateQuote.places[j].Address;
+                            orderedPlaces[Order].Lat = dtCalculateQuote.places[j].Lat;
+                            orderedPlaces[Order].Lng = dtCalculateQuote.places[j].Lng;
+                            await context.Places.AddAsync(orderedPlaces[Order]); //Inserting Places to Context
+                            j = dtCalculateQuote.places.Count;
+                            i = dtCalculateQuote.places.Count;
                         }
                     }
                 }
-                await context.SaveChangesAsync(ct);
-                for (int i = 0; i < orderedPlaces.Count; i++)
+                await context.SaveChangesAsync(); //Saving DB Changes
+                /*for (int i = 0; i < dtCalculateQuote.legs.Count; i++)
                 {
-                    System.Diagnostics.Debug.WriteLine(orderedPlaces[i].Id);
-                    System.Diagnostics.Debug.WriteLine(orderedPlaces[i].Address);
+                    System.Diagnostics.Debug.WriteLine(dtCalculateQuote.legs[i].fromGEO.JsId);
+                    System.Diagnostics.Debug.WriteLine(dtCalculateQuote.legs[i].toGEO.JsId);
+                }*/
+                //Inserting Legs to database. Format: Departure->Wp1, Wp1->Wp2, Wp2->Destination
+                
+                    List<Legs> legs = new List<Legs>();
+                    for (int i = 0; i < dtCalculateQuote.legs.Count; i++)
+                    {
+                        legs.Add(new Legs()); //Adding a new Leg to Collection
+                        legs[i].FromPlaceId = orderedPlaces[i].Id;                      
+                        legs[i].ToPlaceId = orderedPlaces[i + 1].Id;                      
+                        legs[i].Fare = dtCalculateQuote.legs[i].Fare;                       
+                        legs[i].Kms = dtCalculateQuote.legs[i].Kms;                      
+                        legs[i].MinutesDrive = dtCalculateQuote.legs[i].MinutesDrive;                       
+                        legs[i].MinutesWithTraffic = dtCalculateQuote.legs[i].MinutesWithTraffic;
+                        await context.Legs.AddAsync(legs[i]); //Adding Leg to Context
+                    }
+                RidesNextID _ridesNextID=new RidesNextID(context);
+                //Inserting Rides to database
+                Rides rides = new Rides();
+                rides.Id = _ridesNextID.NextId(); //Generating a new Rides ID from RidesNextID();
+                await context.Rides.AddAsync(rides); //Inserting Rides to Context
+                await context.SaveChangesAsync(); //Saving DB Changes
+
+                //Inserting RidesLegs to database
+                List<Rideslegs> ridesLegs = new List<Rideslegs>();
+                for (int i = 0; i < legs.Count; i++)
+                {
+                    ridesLegs.Add(new Rideslegs()); //Adding a new RideLeg to Collection
+                    ridesLegs[i].LegId = legs[i].Id;
+                    ridesLegs[i].RideId = rides.Id;
+                    ridesLegs[i].Seqnr = i + 1;
+                    await context.Rideslegs.AddAsync(ridesLegs[i]);
                 }
+                await context.SaveChangesAsync(ct);
             }
         }
     }
