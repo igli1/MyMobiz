@@ -16,17 +16,13 @@ namespace MyMobiz.Models
         public DateTime DateTimePickupTh { get; set; }
         public DateTime DateTimeArrivalTh { get; set; }
         public string Language { get; set; }
-        public string Veichle { get; set; }
-        public Option Options { get; set; }
         public int Passengers { get; set; }
         public int Kms { get; set; }
         public int DriveTime { get; set; }
         public int WaitTime { get; set; }
-        public List<DTPlaces> places { get; set; }
-        public List<DTLegs> legs { get; set; }
-        public class Option
-        {
-            bool Luxury { get; set; }
-        }
+        public List<Places> Places { get; set; }
+        public List<Legs> Legs { get; set; }
+        public List<DTCategories> Categories { get; set; }
+        public List<DTJourney> Journey { get; set; }
     }
 }

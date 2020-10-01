@@ -1,0 +1,60 @@
+﻿@model MobizAdmin.Data.Referers
+
+@{
+    ViewData["Title"] = "RefererDetails";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Referer Details</h1>
+<h4>Service: <u>@ViewData["ServiceName"]</u></h4>
+
+<h4>Referer</h4>
+<hr />
+@if (Model != null)
+{
+    <div>
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Referer)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Referer)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Tsi)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Tsi)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Tsu)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Tsu)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Tsd)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Tsd)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.ServiceId)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.ServiceId)
+            </dd>
+        </dl>
+        </div>
+}
+        <div>
+            @if (Model != null)
+            {
+                <a asp-action="EditReferer" asp-route-id="@Model.Id" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Edit</a>
+            }
+            else
+            {
+                <a asp-action="CreateReferer" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Create</a>
+            }
+            | <a asp-action="Services">Back to List</a>
+        </div>

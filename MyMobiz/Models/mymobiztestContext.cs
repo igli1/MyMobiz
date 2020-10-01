@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using MyMobiz.Models;
+
 namespace MyMobiz.Models
 {
     public partial class mymobiztestContext : DbContext
@@ -20,21 +20,15 @@ namespace MyMobiz.Models
         public virtual DbSet<Orders> Orders { get; set; }
         public virtual DbSet<Places> Places { get; set; }
         public virtual DbSet<Quotes> Quotes { get; set; }
+        public virtual DbSet<Ratecategories> Ratecategories { get; set; }
+        public virtual DbSet<Rategroupings> Rategroupings { get; set; }
+        public virtual DbSet<Ratesdetails> Ratesdetails { get; set; }
+        public virtual DbSet<Ratetargets> Ratetargets { get; set; }
         public virtual DbSet<Referers> Referers { get; set; }
         public virtual DbSet<Rides> Rides { get; set; }
         public virtual DbSet<Rideslegs> Rideslegs { get; set; }
         public virtual DbSet<Servicerates> Servicerates { get; set; }
         public virtual DbSet<Services> Services { get; set; }
-        public object HttpContext { get; internal set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            /*if (!optionsBuilder.IsConfigured)
-            {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseMySql("server=198.38.85.103;database=mymobiztest;uid=igli;pwd=igli123", x => x.ServerVersion("5.6.48-mysql"));
-            }*/
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -209,6 +203,160 @@ namespace MyMobiz.Models
                     .HasConstraintName("quotes_ibfk_2");
             });
 
+            modelBuilder.Entity<Ratecategories>(entity =>
+            {
+                entity.HasKey(e => e.CategoryId)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("ratecategories");
+
+                entity.HasIndex(e => e.RateGrouping)
+                    .HasName("ratecategories_ibfk_1");
+
+                entity.Property(e => e.CategoryId)
+                    .HasColumnName("CategoryID")
+                    .HasColumnType("varchar(20)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.CategoryConditions)
+                    .HasColumnType("varchar(10000)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.Naming)
+                    .IsRequired()
+                    .HasColumnType("varchar(50)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.RateGrouping)
+                    .HasColumnType("varchar(30)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.Tsd)
+                    .HasColumnName("TSD")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Tsi)
+                    .HasColumnName("TSI")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Tsu)
+                    .HasColumnName("TSU")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .ValueGeneratedOnAddOrUpdate();
+
+                entity.HasOne(d => d.RateGroupingNavigation)
+                    .WithMany(p => p.Ratecategories)
+                    .HasForeignKey(d => d.RateGrouping)
+                    .HasConstraintName("ratecategories_ibfk_1");
+            });
+
+            modelBuilder.Entity<Rategroupings>(entity =>
+            {
+                entity.HasKey(e => e.RateGrouping)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("rategroupings");
+
+                entity.Property(e => e.RateGrouping)
+                    .HasColumnType("varchar(30)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+            });
+
+            modelBuilder.Entity<Ratesdetails>(entity =>
+            {
+                entity.ToTable("ratesdetails");
+
+                entity.HasIndex(e => e.CategoryId)
+                    .HasName("ratesdetails_ibfk_2");
+
+                entity.HasIndex(e => e.RateTarget)
+                    .HasName("ratesdetails_ibfk_3");
+
+                entity.HasIndex(e => e.Vernum)
+                    .HasName("Vernum");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("ID")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.CategoryId)
+                    .IsRequired()
+                    .HasColumnName("CategoryID")
+                    .HasColumnType("varchar(20)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.RateFigure).HasColumnType("decimal(10,2)");
+
+                entity.Property(e => e.RateOperator)
+                    .IsRequired()
+                    .HasColumnType("char(1)")
+                    .HasDefaultValueSql("''")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.RateTarget)
+                    .IsRequired()
+                    .HasColumnType("varchar(20)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.Tsd)
+                    .HasColumnName("TSD")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Tsi)
+                    .HasColumnName("TSI")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Tsu)
+                    .HasColumnName("TSU")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .ValueGeneratedOnAddOrUpdate();
+
+                entity.Property(e => e.Vernum).HasColumnType("int(11)");
+
+                entity.HasOne(d => d.Category)
+                    .WithMany(p => p.Ratesdetails)
+                    .HasForeignKey(d => d.CategoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("ratesdetails_ibfk_2");
+
+                entity.HasOne(d => d.RateTargetNavigation)
+                    .WithMany(p => p.Ratesdetails)
+                    .HasForeignKey(d => d.RateTarget)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("ratesdetails_ibfk_3");
+
+                entity.HasOne(d => d.VernumNavigation)
+                    .WithMany(p => p.Ratesdetails)
+                    .HasForeignKey(d => d.Vernum)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("ratesdetails_ibfk_1");
+            });
+
+            modelBuilder.Entity<Ratetargets>(entity =>
+            {
+                entity.HasKey(e => e.RateTarget)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("ratetargets");
+
+                entity.Property(e => e.RateTarget)
+                    .HasColumnType("varchar(20)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+            });
+
             modelBuilder.Entity<Referers>(entity =>
             {
                 entity.ToTable("referers");
@@ -345,12 +493,39 @@ namespace MyMobiz.Models
                     .HasColumnName("defDate")
                     .HasColumnType("date");
 
+                entity.Property(e => e.EndDate)
+                    .HasColumnName("endDate")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.EurKm).HasColumnType("decimal(10,2)");
+
+                entity.Property(e => e.EurMinDrive).HasColumnType("decimal(10,2)");
+
+                entity.Property(e => e.EurMinWait).HasColumnType("decimal(10,2)");
+
+                entity.Property(e => e.EurMinimum).HasColumnType("decimal(10,2)");
+
                 entity.Property(e => e.ServiceId)
                     .IsRequired()
                     .HasColumnName("ServiceID")
                     .HasColumnType("char(10)")
                     .HasCharSet("utf8")
                     .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.Tsd)
+                    .HasColumnName("TSD")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Tsi)
+                    .HasColumnName("TSI")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Tsu)
+                    .HasColumnName("TSU")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.HasOne(d => d.Service)
                     .WithMany(p => p.Servicerates)

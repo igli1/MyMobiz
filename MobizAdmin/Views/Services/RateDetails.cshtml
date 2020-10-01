@@ -1,0 +1,72 @@
+﻿@model IEnumerable<MobizAdmin.Data.Ratesdetails>
+
+@{
+    ViewData["Title"] = "RateDetails";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Rate Details</h1>
+<h4>Service: <u>@ViewData["ServiceName"]</u></h4>
+<h4>Service Rate VerNum: <u>@ViewData["VerNum"]</u></h4>
+<p>
+    <a asp-action="CreateRateDetails" asp-route-VerNum=" @ViewData["VerNum"]" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName=" @ViewData["ServiceName"]">Create Rate Details</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RateFigure)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RateOperator)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RateTarget)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsi)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsu)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsd)
+            </th>
+
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateFigure)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateOperator)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateTarget)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsi)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsu)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsd)
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<div>
+    <a asp-action="ServiceRates" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Back to List</a>
+</div>

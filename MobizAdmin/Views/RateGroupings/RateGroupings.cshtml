@@ -1,0 +1,31 @@
+﻿@model IEnumerable<MobizAdmin.Data.Rategroupings>
+
+@{
+    ViewData["Title"] = "RateGroupings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>RateGroupings</h1>
+
+<p>
+    <a asp-action="CreateRateGrouping">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.RateGrouping)</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateGrouping)
+            </td>
+            <td>
+                <a asp-action="RateCategories" asp-route-id="@item.RateGrouping">Categories</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

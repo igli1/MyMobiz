@@ -1,0 +1,74 @@
+﻿@model MobizAdmin.Data.Servicerates
+
+@{
+    ViewData["Title"] = "CreateServiceRate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Create Service Rate</h1>
+
+<h4>Service @ViewData["ServiceName"]</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateServiceRate">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="ServiceId" class="control-label"></label>
+                <input asp-for="ServiceId" value="@ViewData["ServiceId"]" readonly class="form-control" />
+                <span asp-validation-for="ServiceId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DefDate" class="control-label"></label>
+                <input asp-for="DefDate" class="form-control" />
+                <span asp-validation-for="DefDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AppDate" class="control-label"></label>
+                <input asp-for="AppDate" class="form-control" />
+                <span asp-validation-for="AppDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndDate" class="control-label"></label>
+                <input asp-for="EndDate" class="form-control" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EurKm" class="control-label"></label>
+                <input asp-for="EurKm" class="form-control" />
+                <span asp-validation-for="EurKm" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EurMinDrive" class="control-label"></label>
+                <input asp-for="EurMinDrive" class="form-control" />
+                <span asp-validation-for="EurMinDrive" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EurMinWait" class="control-label"></label>
+                <input asp-for="EurMinWait" class="form-control" />
+                <span asp-validation-for="EurMinWait" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EurMinimum" class="control-label"></label>
+                <input asp-for="EurMinimum" class="form-control" />
+                <span asp-validation-for="EurMinimum" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Tsd" class="control-label"></label>
+                <input asp-for="Tsd" class="form-control" />
+                <span asp-validation-for="Tsd" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" asp-route-ServiceName="@ViewData["ServiceName"]"  asp-route-ServiceId="@ViewData["ServiceId"]"class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="ServiceRates" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

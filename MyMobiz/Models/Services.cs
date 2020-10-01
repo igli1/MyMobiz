@@ -9,6 +9,7 @@ namespace MyMobiz.Models
         {
             Quotes = new HashSet<Quotes>();
             Referers = new HashSet<Referers>();
+            Servicerates = new HashSet<Servicerates>();
         }
 
         public string Id { get; set; }

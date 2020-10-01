@@ -1,0 +1,14 @@
+﻿@model IEnumerable<MobizAdmin.Data.Services>
+<h4>Select Service</h4>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="_ServicesPartial">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="First().Id" class="control-label"></label>
+                <select asp-for="First().Id" class="form-control" asp-list="@Model.ToList()"></select>
+                
+            </div>
+        </form>
+    </div>
+</div>

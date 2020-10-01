@@ -1,0 +1,113 @@
+﻿@model IEnumerable<MobizAdmin.Data.Services>
+@{
+    ViewData["Title"] = "ServiceRate";
+}
+    <form data-ajax="true" data-ajax-method="POST" asp-action="ServiceRate">
+        <div >
+                <select id="dropdownService" name="dropdownService" onchange="this.form.submit()">
+                    <option value="0">Select Service</option>
+                    @{
+                        foreach (var item in Model)
+                        {
+                            <option value="@item.Id">@item.Id - @item.ServiceName</option>
+                        }
+                    }
+                </select>
+        </div>
+        <div style="text-align: center;">
+            <h4>Service: @ViewData["ServiceName"]</h4>
+        </div>
+            <section>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                VerNum
+                            </th>
+                            <th>
+                                DefDate
+                            </th>
+                            <th>
+                                AppDate
+                            </th>
+                            <th>
+                                EndDate
+                            </th>
+                            <th>
+                                EurKm
+                            </th>
+                            <th>
+                                EurMinDrive
+                            </th>
+                            <th>
+                                EurMinWait
+                            </th>
+                            <th>
+                                EurMinimum
+                            </th>
+                            <th>
+                                Tsi
+                            </th>
+                            <th>
+                                Tsu
+                            </th>
+                            <th>
+                                Tsd
+                            </th>
+                            <th>
+                                Service Id
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ( ViewData["ServiceId"]!=null)
+                        {
+                            @foreach (var item in Model.FirstOrDefault(e => e.Id == ViewData["ServiceId"].ToString()).Servicerates)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.VerNum)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.DefDate)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.AppDate)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.EndDate)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.EurKm)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.EurMinDrive)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.EurMinWait)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.EurMinimum)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Tsi)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Tsu)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Tsd)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.ServiceId)
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </section>
+    </form>
+
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>

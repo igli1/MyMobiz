@@ -1,0 +1,61 @@
+﻿@model IEnumerable<MobizAdmin.Data.Ratecategories>
+
+@{
+    ViewData["Title"] = "RateCategories";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>RateCategories</h1>
+
+<p>
+    <a asp-action="CreateRateCategorie">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.RateGrouping)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Naming)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CategoryConditions)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsi)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsu)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsd)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateGrouping)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Naming)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryConditions)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsi)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsu)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsd)
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

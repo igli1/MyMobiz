@@ -1,0 +1,64 @@
+﻿@model IEnumerable<MobizAdmin.Data.Services>
+
+@{
+    ViewData["Title"] = "Services";
+    //Layout = "~/Areas/Identity/Pages/_ViewStart.cshtml";
+}
+
+<h1>Services</h1>
+
+<p>
+    <a asp-action="CreateService" asp-controller="Services">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Referer Details
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ServiceName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ApiKey)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsi)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsu)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsd)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                <a asp-action="RefererDetails" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName" asp-controller="Services">Referer Details</a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ServiceName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApiKey)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsi)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsu)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsd)
+            </td>
+            <td>
+                <a asp-action="ServiceRates" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName" asp-controller="Services">Service Rates</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,0 +1,28 @@
+﻿@model IEnumerable<MobizAdmin.Data.Ratetargets>
+
+@{
+    ViewData["Title"] = "RateTargets";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>RateTargets</h1>
+
+<p>
+    <a asp-action="CreateRateTarget">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.RateTarget)</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateTarget)
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

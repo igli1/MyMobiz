@@ -1,0 +1,34 @@
+﻿@model MobizAdmin.Data.Ratetargets
+
+@{
+    ViewData["Title"] = "CreateRateTarget";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>CreateRateTarget</h1>
+
+<h4>Ratetargets</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateRateTarget">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="RateTarget" class="control-label"></label>
+                <input asp-for="RateTarget" required class="form-control" />
+                <span asp-validation-for="RateTarget" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="RateTargets">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

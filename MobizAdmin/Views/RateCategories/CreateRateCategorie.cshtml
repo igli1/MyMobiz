@@ -1,0 +1,55 @@
+﻿@model MobizAdmin.Data.Ratecategories
+
+@{
+    ViewData["Title"] = "CreateRateCategorie";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>CreateRateCategorie</h1>
+
+<h4>Ratecategories</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateRateCategorie">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <input asp-for="CategoryId" required class="form-control" />
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RateGrouping" class="control-label"></label>
+                <select asp-for="RateGrouping" class ="form-control" asp-items="@ViewBag.RateGrouping">
+                    <option value="0">-Select Rate Grouping-</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Naming" class="control-label"></label>
+                <input asp-for="Naming" required class="form-control" />
+                <span asp-validation-for="Naming" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryConditions" class="control-label"></label>
+                <input asp-for="CategoryConditions" required class="form-control" />
+                <span asp-validation-for="CategoryConditions" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Tsd" class="control-label"></label>
+                <input asp-for="Tsd" class="form-control" />
+                <span asp-validation-for="Tsd" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="RateCategories">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

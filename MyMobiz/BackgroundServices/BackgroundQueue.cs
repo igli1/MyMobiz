@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using MyMobiz.Models;
 namespace MyMobiz.BackgroundServices
 {
     public interface IBackgroundQueue
