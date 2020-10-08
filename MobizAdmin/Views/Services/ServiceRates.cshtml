@@ -1,14 +1,14 @@
 ﻿@model IEnumerable<MobizAdmin.Data.Servicerates>
 
 @{
-    ViewData["Title"] = "Service Rates";
-    //Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "ServiceRates";
 }
 
 <h1>Service Rates</h1>
-<h4>Service: <u>@ViewData["ServiceName"]</u></h4>
+<h4>Service Name: <u>@ViewData["ServiceName"]</u></h4>
+
 <p>
-    <a asp-action="CreateServiceRate" asp-route-ServiceId="@ViewData["ServiceId"]"  asp-route-ServiceName="@ViewData["ServiceName"]">Create New</a>
+    <a asp-action="CreateServiceRate" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -38,6 +38,18 @@
                 @Html.DisplayNameFor(model => model.EurMinimum)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.MaxPax)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Locked)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Lexo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NQuotes)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Tsi)
             </th>
             <th>
@@ -50,8 +62,7 @@
         </tr>
     </thead>
     <tbody>
-            @foreach (var item in Model)
-            {
+@foreach (var item in Model) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.VerNum)
@@ -78,6 +89,18 @@
                 @Html.DisplayFor(modelItem => item.EurMinimum)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.MaxPax)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Locked)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Lexo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NQuotes)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.Tsi)
             </td>
             <td>
@@ -87,12 +110,13 @@
                 @Html.DisplayFor(modelItem => item.Tsd)
             </td>
             <td>
-                <a asp-action="RateDetails" asp-route-VerNum="@item.VerNum"  asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]" asp-controller="Services">Rate Details</a>
+                <a asp-action="Edit" asp-route-id="@item.VerNum">Edit</a> |
+                <a asp-action="RateDetails" asp-route-id="@item.VerNum" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Details</a>
             </td>
         </tr>
-            }
+}
     </tbody>
 </table>
 <div>
-    <a asp-action="Services">Back to List</a>
+    <a asp-action="ServicesList">Back to List</a>
 </div>

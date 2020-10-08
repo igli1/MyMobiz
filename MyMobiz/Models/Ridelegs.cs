@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MyMobiz.Models
 {
-    public partial class Rideslegs
+    public partial class Ridelegs
     {
         public int Id { get; set; }
         public int LegId { get; set; }
@@ -13,6 +13,9 @@ namespace MyMobiz.Models
         public DateTime? DateTimePickup { get; set; }
         public DateTime? DateTimeArrivalTh { get; set; }
         public DateTime? DateTimePickupTh { get; set; }
+        public DateTime Tsi { get; set; }
+        public DateTime? Tsu { get; set; }
+        public DateTime? Tsd { get; set; }
 
         public virtual Legs Leg { get; set; }
         public virtual Rides Ride { get; set; }

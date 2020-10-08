@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Linq;
-using MyMobiz.Models;
-namespace MyMobiz.NextIDs
-{ 
-    public partial class RidesNextID
+namespace MyMobiz.Models
+{
+    public partial class Quotes
     {
         private readonly mymobiztestContext _context;
-        public RidesNextID(mymobiztestContext context)
+        public Quotes(mymobiztestContext context)
         {
             _context = context;
         }
         public string NextId()
         {
             string year = DateTime.Parse(DateTime.Now.ToString()).Year.ToString();
-            string maxValue = _context.Rides.Max(e => e.Id);
+            string maxValue = _context.Quotes.Max(e => e.Id);
             if (maxValue != null)
             {
-                string[] value = maxValue.Split('R');
+                string[] value = maxValue.Split('Q');
                 if (year == value[0])
                 {
                     int Id;
@@ -25,7 +24,7 @@ namespace MyMobiz.NextIDs
                     {
                         Id = (Convert.ToInt32(value[1]) + 1);
                         if (Id <= 999999)
-                            output = String.Format("{0}{1}{2:D6}", year, "R", Id);
+                            output = String.Format("{0}{1}{2:D6}", year, "Q", Id);
                         else
                             return null;
                     }
@@ -36,10 +35,10 @@ namespace MyMobiz.NextIDs
                     return output;
                 }
                 else
-                    return year + "R000001";
+                    return year + "Q000001";
             }
 
-            return year + "R000001";
+            return year + "Q000001";       
         }
     }
 }

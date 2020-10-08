@@ -11,6 +11,9 @@ namespace MyMobiz.Models
         }
 
         public string Id { get; set; }
+        public DateTime Tsi { get; set; }
+        public DateTime? Tsu { get; set; }
+        public DateTime? Tsd { get; set; }
 
         public virtual ICollection<Orders> Orders { get; set; }
     }

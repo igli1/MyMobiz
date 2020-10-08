@@ -1,17 +1,10 @@
-﻿using MobizAdmin.Data;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
-namespace MyMobiz.NextIDs
+namespace MobizAdmin.Data
 {
-    public partial class ServiceNextId
+    public partial class Services
     {
-        private readonly mymobiztestContext _context;
-        public ServiceNextId(mymobiztestContext context)
-        {
-            _context = context;
-        }
+        public  mymobiztestContext _context { get; set; }
         public string NextId()
         {
             string year = DateTime.Parse(DateTime.Now.ToString()).Year.ToString();

@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyMobiz.Models;
 using MyMobiz.Models.DTOs;
-using Newtonsoft.Json;
 using MyMobiz.BackgroundServices;
-using MyMobiz.NextIDs;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +11,6 @@ using System.Linq;
 using System.Reflection;
 using System;
 using MyMobiz.RatesTarget;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace MyMobiz.Controllers
 {
@@ -21,17 +18,14 @@ namespace MyMobiz.Controllers
     [ApiController]
     public class QuotesController : ControllerBase
     {
-        private readonly IMemoryCache _memoryCache;
         private readonly mymobiztestContext _context;
-        private readonly QuoteNextId _quoteNextId;
         private IBackgroundQueue _queue;
         private readonly IServiceScopeFactory _scopeFactory;
-        public QuotesController(mymobiztestContext context, IBackgroundQueue queue, IServiceScopeFactory scopeFactory, IMemoryCache memoryCache)
+        public QuotesController(mymobiztestContext context, IBackgroundQueue queue, IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
             _context = context;
             _queue = queue;
-            _quoteNextId = new QuoteNextId(_context);
         }
         // Accepting Post request from Route 'Api/Quotes/calculate'
         // Creating and returning a new Quote
@@ -40,28 +34,27 @@ namespace MyMobiz.Controllers
         [Route("calculate")]
         public async Task<ActionResult<DTCalculateQuote>> CalculateQuoteTasksAsync(DTCalculateQuote dtCalculateQuote)
         {
-            Quotes quote = new Quotes(); //Creating a new Quote
-            quote.Id = _quoteNextId.NextId(); //Generating a new Quotes ID from QuotesNextID();
-            quote.RefererId = _context.Referers.AsNoTracking().FirstOrDefault(e => e.ServiceId == dtCalculateQuote.ServiceID).Id;
+            
+            Quotes quote = new Quotes(_context); //Creating a new Quote
+            quote.Id = quote.NextId(); //Generating a new Quotes ID from Quotes.NextID();
+            quote.RefererId = _context.Webreferers.AsNoTracking().FirstOrDefault(e => e.ServiceId == dtCalculateQuote.ServiceID).Id;
             quote.ServiceId = dtCalculateQuote.ServiceID;
             // should become optional in database
-            quote.RideId = "2020R000040"; //Rides Id hard-coded rides row not created yet
-            quote.Price = Convert.ToDouble(await CalculatePriceAsync(dtCalculateQuote)); //calculating price
+            quote.Price = await CalculatePriceAsync(dtCalculateQuote); //calculating price
             if (quote.Price == null || quote.Price == 0)
                 return BadRequest();
             await _context.Quotes.AddAsync(quote); // Adding Quote to Context
             await _context.SaveChangesAsync(); // Saving Changes
             _queue.QueueTask(async token =>   // Initiating Background Service
             {
-                await StoreGeoAsync(dtCalculateQuote, token);
+                await StoreGeoAsync(dtCalculateQuote, token, quote.Id);
 
             });
             return Ok(new DTQuote() { Id = quote.Id, Price = quote.Price });
-            //return CreatedAtAction("GetQuotes", new { id = quote.Id }, quote); //Returning the new Quote
         }
         //Background Service
         //Inserting to Database Places, Legs, Rides and RidesLegs
-        public async Task StoreGeoAsync(DTCalculateQuote dtCalculateQuote, CancellationToken ct)
+        public async Task StoreGeoAsync(DTCalculateQuote dtCalculateQuote, CancellationToken ct, string quoteId)
         {
             using (var scope = _scopeFactory.CreateScope())
             {
@@ -90,23 +83,23 @@ namespace MyMobiz.Controllers
                 //Adding Leg to Context
                 await context.Legs.AddRangeAsync(dtCalculateQuote.Legs);
                 //Inserting Rides to context
-                RidesNextID _ridesNextId = new RidesNextID(context);
-                Rides rides = new Rides();
-                rides.Id = _ridesNextId.NextId(); //Generating Rides Next Id;
+                Rides rides = new Rides(context);
+                rides.Id = rides.NextId(); //Generating Rides Next Id;
+                rides.QuoteId = quoteId;
                 await context.Rides.AddAsync(rides); //Inserting Rides to Context
                 // Saving legs and rides to database
                 await context.SaveChangesAsync();
 
                 //Inserting RidesLegs to context
-                List<Rideslegs> ridesLegs = new List<Rideslegs>();
+                List<Ridelegs> ridesLegs = new List<Ridelegs>();
                 for (int i = 0; i < dtCalculateQuote.Legs.Count; i++)
                 {
-                    ridesLegs.Add(new Rideslegs()); //Adding a new RideLeg to Collection
+                    ridesLegs.Add(new Ridelegs()); //Adding a new RideLeg to Collection
                     ridesLegs[i].LegId = dtCalculateQuote.Legs[i].Id;
                     ridesLegs[i].RideId = rides.Id;
                     ridesLegs[i].Seqnr = i + 1;
                 }
-                await context.Rideslegs.AddRangeAsync(ridesLegs);
+                await context.Ridelegs.AddRangeAsync(ridesLegs);
                 //Saving rides legs to database
                 await context.SaveChangesAsync(ct);
             }
@@ -115,7 +108,7 @@ namespace MyMobiz.Controllers
         public async Task<decimal> CalculatePriceAsync(DTCalculateQuote dtCalculateQuote)
         {
             //Getting service rates the newest
-            Servicerates rates = await _context.Servicerates.Where(s => s.AppDate <= DateTime.Today && s.ServiceId == dtCalculateQuote.ServiceID).OrderByDescending(s => s.AppDate).AsNoTracking().FirstOrDefaultAsync();
+            Servicerates rates = await _context.Servicerates.Where(s => s.AppDate <= DateTime.Today && s.ServiceId == dtCalculateQuote.ServiceID && s.Locked==false).OrderByDescending(s => s.AppDate).AsNoTracking().FirstOrDefaultAsync();
             decimal price;
             // If a service doesn't have categories only default rate
             if (dtCalculateQuote.Categories == null)
@@ -131,53 +124,53 @@ namespace MyMobiz.Controllers
             {
                 Servicerates calculatedRate = new Servicerates();
                 List<Target> totalPrice = new List<Target>();
-                decimal rateFigure;
-                string rateOp;
-                string target;
                 // loop through categories
-                for (int i = 0; i < dtCalculateQuote.Categories.Count; i++)
+                List<Ratecategories> categories = new List<Ratecategories>();
+                for(int i = 0; i < dtCalculateQuote.Categories.Count; i++)
                 {
-                    if (dtCalculateQuote.Categories[i].Option == null || dtCalculateQuote.Categories[i].Option == true)
+                    if(dtCalculateQuote.Categories[i].Option==null || dtCalculateQuote.Categories[i].Option == true)
                     {
-                        foreach (Ratesdetails detail in await _context.Ratesdetails.Where(e => e.Vernum == rates.VerNum && e.CategoryId == dtCalculateQuote.Categories[i].Category).AsNoTracking().ToListAsync())
+                        categories.Add(await _context.Ratecategories.AsNoTracking().FirstOrDefaultAsync(e => e.Lexo == dtCalculateQuote.Categories[i].Category ));
+                    }
+                }
+                for (int i=0;i<categories.Count;i++)
+                {
+                    foreach (Ratedetails detail in await _context.Ratedetails.Where(e => e.Vernum == rates.VerNum && e.CategoryId==categories[i].Id).AsNoTracking().ToListAsync())
+                    {
+                        foreach (Ratetargets target in await _context.Ratetargets.Where(e => e.RateDetailId == detail.Id).AsNoTracking().ToListAsync())
                         {
-                            // getting rate detail parameters
-                            rateFigure = detail.RateFigure;
-                            rateOp = detail.RateOperator;
-                            target = detail.RateTarget;
                             // checking if target is not total price bcs total price gets calculated in the end
-                            if (target != "TotalPrice")
+                            if (target.RateTarget != "TotalPrice" && target.RateTarget != "EurMile")
                             {
                                 //getting target property values
-                                PropertyInfo newRateProperty = calculatedRate.GetType().GetProperty(target);
-                                decimal ratesValue = (decimal)((rates.GetType().GetProperty(target).GetValue(rates, null)));
+                                PropertyInfo newRateProperty = calculatedRate.GetType().GetProperty(target.RateTarget);
+                                decimal ratesValue = (decimal)((rates.GetType().GetProperty(target.RateTarget).GetValue(rates, null)));
                                 decimal previousValue = 0;
-                                if (calculatedRate.GetType().GetProperty(target).GetValue(calculatedRate, null) != null)
+                                if (calculatedRate.GetType().GetProperty(target.RateTarget).GetValue(calculatedRate, null) != null)
                                 {
-                                    previousValue = (decimal)((calculatedRate.GetType().GetProperty(target).GetValue(calculatedRate, null)));
+                                    previousValue = (decimal)((calculatedRate.GetType().GetProperty(target.RateTarget).GetValue(calculatedRate, null)));
                                 }
                                 //switching betwen operator cases
                                 //Adding values to target property
-                                switch (rateOp)
+                                switch (target.RateOperator)
                                 {
                                     case "+":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue + rateFigure));
+                                        newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue + target.RateFigure));
                                         break;
                                     case "*":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue * rateFigure));
+                                        newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue * target.RateFigure));
                                         break;
                                     case "=":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + rateFigure);
+                                        newRateProperty.SetValue(calculatedRate, previousValue + target.RateFigure);
                                         break;
                                     case "%":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + (((rateFigure / 100) * ratesValue) + ratesValue));
+                                        newRateProperty.SetValue(calculatedRate, previousValue + (((target.RateFigure / 100) * ratesValue) + ratesValue));
                                         break;
                                 }
                             }
-                            else
+                            else if (target.RateTarget == "TotalPrice")
                             {
-                                //If target is total price then we store figure and operator
-                                totalPrice.Add(new Target() { Figure = rateFigure, op = rateOp });
+                                totalPrice.Add(new Target() { Figure = target.RateFigure, op = target.RateOperator });
                             }
                         }
                     }

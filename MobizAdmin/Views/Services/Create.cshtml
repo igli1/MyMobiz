@@ -1,0 +1,92 @@
+﻿
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create Service Details</h1>
+<div >
+    <div>
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label class="control-label">Select Service</label>
+                <select asp-items="@ViewBag.Services" id="ServiceSelect" class="form-control">
+                    <option value="null">-Select Service-</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Select Service Rate</label>
+                <select id="ServiceRateSelect" class="form-control">
+                    <option value="null">-Select Service Rate-</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="control-label" id="ServiceId"></label>
+                <label class="control-label" id="ServiceName"></label>
+            </div>
+            <div class="form-group">
+                <label class="control-label" id="defDate"></label>
+                <label class="control-label" id="appDate"></label>
+                <label class="control-label" id="endDate"></label>
+                <label class="control-label" id="verNum"></label>
+            </div>
+            <h4 style="text-align: center; ">Rates Details</h4>
+            <div style="display: flex; ">
+                <div style="flex: 1; width:33%;">
+                    <section id="RatesDetailsSection">
+                        <label class="control-label">Rates Categories</label>
+                        <table class="table" id="RatesDetailsTable" width="100%">
+                        </table>
+                        <hr width="100%" />
+                        <label class="control-label">Rates Categories Removed</label>
+                        <table class="table" id="RatesDetailsTableRemoved" width="100%">
+                        </table>
+                    </section>
+                </div>
+                <div style="flex: 2; width:33%;">
+                    <label class="control-label">Conditions</label>
+                    <textarea class="form-control" id="Conditions"></textarea>
+                </div>
+                <div style="flex: 2; width:33%;">
+                    <label class="control-label">Defaults</label>
+                    <div>
+                        <input size="1" />
+                        <input size="5" />
+                        <label>EurKm:</label>
+                        <input size="5" />
+                        <button type="button">+</button>
+                    </div>
+                    <div>
+                        <input size="1" />
+                        <input size="5" />
+                        <label>EurMinDrive:</label>
+                        <input size="5" />
+                        <button type="button">+</button>
+                    </div>
+                    <div>
+                        <input size="1" />
+                        <input size="5" />
+                        <label>EurMinWait:</label>
+                        <input size="5" />
+                        <button type="button">+</button>
+                    </div>
+                    <div>
+                        <label>EurMinWait:</label>
+                        <input size="5" />
+                        <button type="button">+</button>
+                    </div>
+                    <div>
+                        <input size="1" />
+                        <input size="5" />
+                        <label>MaxPax:</label>
+                        <input size="5" />
+                        <button type="button">+</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/Create.js"></script>
+}

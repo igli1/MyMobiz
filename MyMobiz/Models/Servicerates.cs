@@ -7,7 +7,7 @@ namespace MyMobiz.Models
     {
         public Servicerates()
         {
-            Ratesdetails = new HashSet<Ratesdetails>();
+            Ratedetails = new HashSet<Ratedetails>();
         }
 
         public int VerNum { get; set; }
@@ -19,11 +19,15 @@ namespace MyMobiz.Models
         public decimal EurMinDrive { get; set; }
         public decimal EurMinWait { get; set; }
         public decimal? EurMinimum { get; set; }
+        public int MaxPax { get; set; }
+        public bool Locked { get; set; }
+        public string Lexo { get; set; }
+        public int NQuotes { get; set; }
         public DateTime Tsi { get; set; }
-        public DateTime Tsu { get; set; }
+        public DateTime? Tsu { get; set; }
         public DateTime? Tsd { get; set; }
 
         public virtual Services Service { get; set; }
-        public virtual ICollection<Ratesdetails> Ratesdetails { get; set; }
+        public virtual ICollection<Ratedetails> Ratedetails { get; set; }
     }
 }

@@ -1,0 +1,20 @@
+﻿@model MobizAdmin.Data.RatesDetailsModel
+@{
+    ViewData["Title"] = "CreateServiceDetails";
+}
+<h1>Create Service Details</h1>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateServiceDetails" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div>
+                <label>Select Service</label>
+                @Html.DropDownListFor(m => m.ServiceId, Model.Services, "Please select", new { onchange = "this.form.submit()" })
+            </div>
+            <div>
+                <label>Select Service Rates</label>
+                @Html.DropDownListFor(m => m.VerNum, Model.ServiceRates, "Please select", new { onchange = "this.form.submit()" })
+            </div>
+        </form>
+    </div>
+</div>

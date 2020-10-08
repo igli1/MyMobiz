@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using CsvHelper.Configuration.Attributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MobizAdmin.Data;
 using MobizAdmin.Models;
-using MyMobiz.NextIDs;
 
 namespace MobizAdmin.Controllers
 {
@@ -45,9 +39,6 @@ namespace MobizAdmin.Controllers
         [Authorize]
         public IActionResult ServiceRate(IFormCollection collection)
         {
-            /*List<Services> services = new List<Services>();
-            services = (from service in _context.Services select service).ToList();
-            ViewBag.Services = services;*/
             string Id = collection["dropdownService"];
             if (Id == null)
             {
@@ -62,18 +53,7 @@ namespace MobizAdmin.Controllers
                 return View(services);
             }
         }
-        
-        /*[HttpPost]
-        [Authorize]
-        public IActionResult ServiceRate(IFormCollection collection)
-        {
-            string Id = collection["dropdownService"];
-            List<Servicerates> serviceRates = new List<Servicerates>();
-            serviceRates=_context.Servicerates.Where(e =>e.ServiceId==Id).ToList();
-            var tuple= Tuple.Create<IEnumerable<Services>, IEnumerable<Servicerates>>(_context.Services.ToList(),
-    serviceRates);
-            return View(tuple);
-        }*/
+
         [Authorize]
         public IActionResult ServiceDetails(string Id)
         {

@@ -1,14 +1,15 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MobizAdmin.Data;
-using MyMobiz.NextIDs;
+using Newtonsoft.Json;
 
 namespace MobizAdmin.Controllers
-{ 
+{
     public class ServicesController : Controller
     {
         private readonly mymobiztestContext _context;
@@ -18,7 +19,7 @@ namespace MobizAdmin.Controllers
             _context = context;
         }
         [Authorize] //return list of services
-        public IActionResult Services()
+        public IActionResult ServicesList()
         {
             return View(_context.Services.ToList());
         }
@@ -31,11 +32,29 @@ namespace MobizAdmin.Controllers
         [Authorize] //creates a new service
         public async Task<IActionResult> CreateServiceAsync(Services service)
         {
-            ServiceNextId nextId = new ServiceNextId(_context);
-            service.Id = nextId.NextId();
+            service._context = _context;
+            service.Id = service.NextId();
             await _context.Services.AddAsync(service);
             await _context.SaveChangesAsync();
-            return RedirectToAction("Services");
+            return RedirectToAction("ServicesList");
+        }
+        [Authorize] //return service details
+        public IActionResult ServiceDetails(string ServiceId)
+        {
+            return View(_context.Services.Find(ServiceId));
+        }
+        [Authorize] //returns edit service view
+        public IActionResult EditService(string ServiceId)
+        {
+            return View(_context.Services.Find(ServiceId));
+        }
+        [HttpPost]
+        [Authorize] //Edits the service
+        public async Task<IActionResult> EditServiceAsync(Services services)
+        {
+            _context.Entry(services).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return RedirectToAction("ServiceDetails", new { ServiceId = services.Id});
         }
         [Authorize] //return list of service rates
         public IActionResult ServiceRates(string ServiceId, string ServiceName)
@@ -55,10 +74,10 @@ namespace MobizAdmin.Controllers
         [Authorize] //creates new serviceRate
         public async Task<IActionResult> CreateServiceRateAsync(Servicerates serviceRates, string ServiceName)
         {
-            //System.Diagnostics.Debug.WriteLine("igli" + serviceRates.ServiceId);
+            
             await _context.Servicerates.AddAsync(serviceRates);
             await _context.SaveChangesAsync();
-            return RedirectToAction("ServiceRates", new { Id = serviceRates.ServiceId, ServiceName = ServiceName });
+            return RedirectToAction("ServiceRates", new { ServiceId = serviceRates.ServiceId, ServiceName = ServiceName });
         }
         [Authorize] //return list of rateDetails
         public IActionResult RateDetails(int VerNum, string ServiceId, string ServiceName)
@@ -66,7 +85,7 @@ namespace MobizAdmin.Controllers
             ViewData["VerNum"] = VerNum;
             ViewData["ServiceId"] = ServiceId;
             ViewData["ServiceName"] = ServiceName;
-            return View(_context.Ratesdetails.Where(e => e.Vernum == VerNum).ToList());
+            return View(_context.Ratedetails.Where(e => e.Vernum == VerNum).ToList());
         }
         [Authorize] //return create rateDetails view
         public IActionResult CreateRateDetails(int VerNum, string ServiceName, string ServiceId)
@@ -75,42 +94,34 @@ namespace MobizAdmin.Controllers
             ViewData["ServiceName"] = ServiceName;
             ViewData["ServiceId"] = ServiceId;
             //var rateCategories=new SelectList(_context.Ratecategories.ToDictionary(e=>e.CategoryId),"Key","Value");
-            ViewBag.Ratecategories = new SelectList(_context.Ratecategories.ToDictionary(e => e.CategoryId, e => e.CategoryId), "Key", "Value");
+            ViewBag.Ratecategories = new SelectList(_context.Ratecategories.ToDictionary(e => e.Lexo, e => e.Lexo), "Key", "Value");
             ViewBag.Ratetargets = new SelectList(_context.Ratetargets.ToDictionary(e => e.RateTarget, e => e.RateTarget), "Key", "Value");
             return View();
         }
         [HttpPost]
         [Authorize] //creates a new rateDetails
-        public async Task<IActionResult> CreateRateDetailsAsync(Ratesdetails ratesdetails, string ServiceName, string ServiceId)
+        public async Task<IActionResult> CreateRateDetailsAsync(Ratedetails ratedetails, string ServiceName, string ServiceId)
         {
-            await _context.AddAsync(ratesdetails);
+            await _context.AddAsync(ratedetails);
             await _context.SaveChangesAsync();
-            return RedirectToAction("RateDetails", new { VerNum = ratesdetails.Vernum, ServiceName = ServiceName, ServiceId= ServiceId });
+            return RedirectToAction("RateDetails", new { VerNum = ratedetails.Vernum, ServiceName = ServiceName, ServiceId= ServiceId });
         }
         [Authorize] //returns referer details
         public IActionResult RefererDetails(string ServiceId, string ServiceName)
         {
             ViewData["ServiceName"] = ServiceName;
             ViewData["ServiceId"] = ServiceId;
-            return View(_context.Referers.FirstOrDefault(e => e.ServiceId == ServiceId));
+            return View(_context.Webreferers.FirstOrDefault(e => e.ServiceId == ServiceId));
         }
-        [Authorize] //returns edit referer view
-        public IActionResult EditReferer(int id, string ServiceId, string ServiceName)
+        [Authorize] //returns list of Web Referers for specifik Service Id
+        public IActionResult WebReferers(string ServiceId, string ServiceName)
         {
             ViewData["ServiceName"] = ServiceName;
             ViewData["ServiceId"] = ServiceId;
-            return View(_context.Referers.FirstOrDefault(e => e.Id == id));
-        }
-        [HttpPost]
-        [Authorize] //Edits the referer
-        public async Task<IActionResult> EditRefererAsync(Referers referers, string ServiceId, string ServiceName)
-        {
-            _context.Entry(referers).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return RedirectToAction("RefererDetails", new { ServiceId = ServiceId, ServiceName = ServiceName });
+            return View(_context.Webreferers.Where(e => e.ServiceId == ServiceId).ToList());
         }
         [Authorize] //returns referer create view
-        public IActionResult CreateReferer(string ServiceId, string ServiceName)
+        public IActionResult CreateWebReferers(string ServiceId, string ServiceName)
         {
             ViewData["ServiceName"] = ServiceName;
             ViewData["ServiceId"] = ServiceId;
@@ -118,11 +129,118 @@ namespace MobizAdmin.Controllers
         }
         [HttpPost]
         [Authorize] //creates new referer
-        public async Task<IActionResult> CreateRefererAsync(Referers referers, string ServiceId, string ServiceName)
+        public async Task<IActionResult> CreateWebReferersAsync(Webreferers webReferers, string ServiceId, string ServiceName)
         {
-            await _context.AddAsync(referers);
+            await _context.AddAsync(webReferers);
             await _context.SaveChangesAsync();
-            return RedirectToAction("RefererDetails", new { ServiceId = ServiceId, ServiceName = ServiceName });
+            return RedirectToAction("WebReferers", new { ServiceId = ServiceId, ServiceName = ServiceName });
+        }
+        [Authorize] //returns Web Referer delete view
+        public IActionResult DeleteWebReferer(int Id, string ServiceId, string ServiceName)
+        {
+            ViewData["ServiceName"] = ServiceName;
+            ViewData["ServiceId"] = ServiceId;
+            return View(_context.Webreferers.FirstOrDefault(e=>e.Id==Id));
+        }
+        [HttpPost]
+        [Authorize] //Deletes Web Referer
+        public async Task<IActionResult> DeleteWebRefererAsync(int Id, string ServiceId, string ServiceName)
+        {
+            _context.Webreferers.Remove(_context.Webreferers.Find(Id));
+            await _context.SaveChangesAsync();
+            return RedirectToAction("WebReferers", new { ServiceId = ServiceId, ServiceName = ServiceName });
+        }
+        [Authorize] //returns edit referer view
+        public IActionResult EditWebReferer(int id, string ServiceId, string ServiceName)
+        {
+            ViewData["ServiceName"] = ServiceName;
+            ViewData["ServiceId"] = ServiceId;
+            return View(_context.Webreferers.FirstOrDefault(e => e.Id == id));
+        }
+        [HttpPost]
+        [Authorize] //Edits the referer
+        public async Task<IActionResult> EditWebRefererAsync(Webreferers webReferers, string ServiceId, string ServiceName)
+        {
+            _context.Entry(webReferers).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return RedirectToAction("WebReferers", new { ServiceId = ServiceId, ServiceName = ServiceName });
+        }
+        [Authorize] //return list of service details
+        public async Task<IActionResult> CreateServiceDetailsAsync()
+        {
+            RatesDetailsModel model = new RatesDetailsModel();
+            model.Services = new SelectList((await _context.Services.AsNoTracking().ToListAsync()).ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
+            return View(model);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateServiceDetailsAsync(string ServiceId, int VerNum)
+        {
+            RatesDetailsModel model = new RatesDetailsModel();
+            model.Services = new SelectList((await _context.Services.AsNoTracking().ToListAsync()).ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
+            if (ServiceId!=null)
+            {
+                model.ServiceRates = new SelectList((await _context.Servicerates.Where(e=>e.ServiceId==ServiceId).AsNoTracking().ToListAsync()).ToDictionary(e => e.VerNum, e => e.Lexo), "Key", "Value");
+            }
+            return View(model);
+        }
+        [Authorize]
+        public IActionResult Create()
+        {
+            ViewBag.Services = new SelectList(_context.Services.ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
+            return View();
+        }
+        /*
+        [Authorize]
+        public async Task<IActionResult> GetServices()
+        {
+            var services = await _context.Services.Select(e=> new
+            {
+                Id = e.Id,
+                ServiceName = e.ServiceName
+            }
+            ).AsNoTracking().ToListAsync();
+            return Json(services);
+        }*/
+        [HttpPost]
+        [Authorize]
+        public async Task<JsonResult> GetServiceRates([FromBody] string serviceid)
+        {
+            var serviceRates = await _context.Servicerates.Where(e => e.ServiceId == serviceid).Select(e => new
+            {
+                VerNum = e.VerNum,
+                Lexo = e.Lexo
+            }
+            ).AsNoTracking().ToListAsync();
+            return Json(serviceRates);
+        }
+        [HttpPost]
+        [Authorize]
+        public JsonResult GetServiceRate([FromBody] string vernum)
+        {
+            int VerNum = Convert.ToInt32(vernum);
+            var serviceRate = _context.Servicerates.Where(e=>e.VerNum== VerNum).Select(e => new
+            {
+                defDate=e.DefDate,
+                appDate=e.AppDate,
+                endDate=e.EndDate,
+            });
+            return Json(serviceRate);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<JsonResult> GetRateCategories([FromBody] string ServiceId)
+        {
+
+            var rateCategories = await _context.Ratecategories.Where(e => e.ServiceId == ServiceId).Select(e => new
+            {
+                id=e.Id,
+                lexo=e.Lexo,
+                grouping=e.RateGrouping,
+                conditions=e.CategoryConditions
+            }).ToListAsync();
+            System.Diagnostics.Debug.WriteLine("igli "+JsonConvert.SerializeObject(rateCategories));
+            return Json(rateCategories);
         }
     }
 }

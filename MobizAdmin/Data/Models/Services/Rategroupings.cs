@@ -11,6 +11,9 @@ namespace MobizAdmin.Data
         }
 
         public string RateGrouping { get; set; }
+        public DateTime Tsi { get; set; }
+        public DateTime? Tsu { get; set; }
+        public DateTime? Tsd { get; set; }
 
         public virtual ICollection<Ratecategories> Ratecategories { get; set; }
     }

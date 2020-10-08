@@ -5,9 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyMobiz.Models;
-using System.Diagnostics;
-using System.Data;
-using System;
 using MyMobiz.BackgroundServices;
 
 namespace MyMobiz
@@ -24,9 +21,8 @@ namespace MyMobiz
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMemoryCache();
-            services.AddControllers();
-            services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);           
+            
+            services.AddControllers();  
             services.AddControllers().AddNewtonsoftJson();
             services.AddTransient<DbContext, mymobiztestContext>();
             //added dbContex and connection string
@@ -53,7 +49,7 @@ namespace MyMobiz
             }
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseAuthorization();
+            //app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
