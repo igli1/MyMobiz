@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System;
 using MyMobiz.RatesTarget;
+using System.Text.Json;
 
 namespace MyMobiz.Controllers
 {
@@ -124,57 +125,54 @@ namespace MyMobiz.Controllers
             {
                 Servicerates calculatedRate = new Servicerates();
                 List<Target> totalPrice = new List<Target>();
-                // loop through categories
-                List<Ratecategories> categories = new List<Ratecategories>();
-                for(int i = 0; i < dtCalculateQuote.Categories.Count; i++)
+
+                // loop through categories edited
+                List<DTCategories> dTCategories = dtCalculateQuote.Categories.Where(e => e.Option == null || e.Option == true).ToList();
+                /*foreach (Ratetargets target in await _context.Ratetargets.Where(e =>_context.Ratecategories.AsNoTracking().Any(s => dTCategories.Select(z => z.Category).Contains(s.Lexo) &&
+                _context.Ratedetails.Any(x=>x.CategoryId==s.Id && x.Vernum==rates.VerNum && e.RateDetailId==x.Id))).ToListAsync())
                 {
-                    if(dtCalculateQuote.Categories[i].Option==null || dtCalculateQuote.Categories[i].Option == true)
-                    {
-                        categories.Add(await _context.Ratecategories.AsNoTracking().FirstOrDefaultAsync(e => e.Lexo == dtCalculateQuote.Categories[i].Category ));
-                    }
-                }
-                for (int i=0;i<categories.Count;i++)
-                {
-                    foreach (Ratedetails detail in await _context.Ratedetails.Where(e => e.Vernum == rates.VerNum && e.CategoryId==categories[i].Id).AsNoTracking().ToListAsync())
-                    {
-                        foreach (Ratetargets target in await _context.Ratetargets.Where(e => e.RateDetailId == detail.Id).AsNoTracking().ToListAsync())
-                        {
-                            // checking if target is not total price bcs total price gets calculated in the end
-                            if (target.RateTarget != "TotalPrice" && target.RateTarget != "EurMile")
-                            {
-                                //getting target property values
-                                PropertyInfo newRateProperty = calculatedRate.GetType().GetProperty(target.RateTarget);
-                                decimal ratesValue = (decimal)((rates.GetType().GetProperty(target.RateTarget).GetValue(rates, null)));
-                                decimal previousValue = 0;
-                                if (calculatedRate.GetType().GetProperty(target.RateTarget).GetValue(calculatedRate, null) != null)
-                                {
-                                    previousValue = (decimal)((calculatedRate.GetType().GetProperty(target.RateTarget).GetValue(calculatedRate, null)));
-                                }
-                                //switching betwen operator cases
-                                //Adding values to target property
-                                switch (target.RateOperator)
-                                {
-                                    case "+":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue + target.RateFigure));
-                                        break;
-                                    case "*":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue * target.RateFigure));
-                                        break;
-                                    case "=":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + target.RateFigure);
-                                        break;
-                                    case "%":
-                                        newRateProperty.SetValue(calculatedRate, previousValue + (((target.RateFigure / 100) * ratesValue) + ratesValue));
-                                        break;
-                                }
-                            }
-                            else if (target.RateTarget == "TotalPrice")
-                            {
-                                totalPrice.Add(new Target() { Figure = target.RateFigure, op = target.RateOperator });
-                            }
-                        }
-                    }
-                }
+                    System.Diagnostics.Debug.WriteLine("igli " + target.Id);
+                }*/
+                    
+               
+                foreach (Ratetargets target in await _context.Ratetargets.Where(e => _context.Ratedetails.AsNoTracking().Any(x=>e.RateDetailId==x.Id && x.Vernum==rates.VerNum
+              && _context.Ratecategories.AsNoTracking().Any(s => dTCategories.Select(z => z.Category).Contains(s.Lexo) && x.CategoryId == s.Id))).ToListAsync())
+               {
+                    System.Diagnostics.Debug.WriteLine("igli "+target.Id);
+                   // checking if target is not total price bcs total price gets calculated in the end
+                   if (target.RateTarget != "TotalPrice" && target.RateTarget != "EurMile" && target.RateTarget != "MaxPax")
+                   {
+                       //getting target property values
+                       PropertyInfo newRateProperty = calculatedRate.GetType().GetProperty(target.RateTarget);
+                       decimal ratesValue = (decimal)((rates.GetType().GetProperty(target.RateTarget).GetValue(rates, null)));
+                       decimal previousValue = 0;
+                       if (calculatedRate.GetType().GetProperty(target.RateTarget).GetValue(calculatedRate, null) != null)
+                       {
+                           previousValue = (decimal)((calculatedRate.GetType().GetProperty(target.RateTarget).GetValue(calculatedRate, null)));
+                       }
+                       //switching betwen operator cases
+                       //Adding values to target property
+                       switch (target.RateOperator)
+                       {
+                           case "+":
+                               newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue + target.RateFigure));
+                               break;
+                           case "*":
+                               newRateProperty.SetValue(calculatedRate, previousValue + (ratesValue * target.RateFigure));
+                               break;
+                           case "=":
+                               newRateProperty.SetValue(calculatedRate, previousValue + target.RateFigure);
+                               break;
+                           case "%":
+                               newRateProperty.SetValue(calculatedRate, previousValue + (((target.RateFigure / 100) * ratesValue) + ratesValue));
+                               break;
+                       }
+                   }
+                   else if (target.RateTarget == "TotalPrice")
+                   {
+                       totalPrice.Add(new Target() { Figure = target.RateFigure, op = target.RateOperator });
+                   }
+               }
                 //calculating the price
                 price = ((calculatedRate.EurKm * dtCalculateQuote.Kms) + (calculatedRate.EurMinDrive * dtCalculateQuote.DriveTime) +
                     (calculatedRate.EurMinWait * dtCalculateQuote.WaitTime));

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -188,6 +189,7 @@ namespace MobizAdmin.Controllers
         public IActionResult Create()
         {
             ViewBag.Services = new SelectList(_context.Services.ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
+
             return View();
         }
         /*
@@ -221,7 +223,12 @@ namespace MobizAdmin.Controllers
             int VerNum = Convert.ToInt32(vernum);
             var serviceRate = _context.Servicerates.Where(e=>e.VerNum== VerNum).Select(e => new
             {
-                defDate=e.DefDate,
+                verNum=e.VerNum,
+                eurKm=e.EurKm,
+                eurMinDrive = e.EurMinDrive,
+                eurMinimum = e.EurMinimum,
+                eurMinWait = e.EurMinWait,
+                defDate =e.DefDate,
                 appDate=e.AppDate,
                 endDate=e.EndDate,
             });
@@ -229,18 +236,29 @@ namespace MobizAdmin.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<JsonResult> GetRateCategories([FromBody] string ServiceId)
+        public async Task<JsonResult> GetRateCategoriesSelected([FromBody] string ServiceId)
         {
-
-            var rateCategories = await _context.Ratecategories.Where(e => e.ServiceId == ServiceId).Select(e => new
+            var ratecategories = await _context.Ratecategories.Where(e =>e.ServiceId==ServiceId && _context.Ratedetails.AsNoTracking().Any(x => e.Id == x.CategoryId)).AsNoTracking().Select(e => new
             {
-                id=e.Id,
-                lexo=e.Lexo,
-                grouping=e.RateGrouping,
-                conditions=e.CategoryConditions
-            }).ToListAsync();
-            System.Diagnostics.Debug.WriteLine("igli "+JsonConvert.SerializeObject(rateCategories));
-            return Json(rateCategories);
+                id = e.Id,
+                lexo = e.Lexo,
+                grouping = e.RateGrouping,
+                conditions = e.CategoryConditions
+            }).AsNoTracking().ToListAsync();
+            return Json(ratecategories);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<JsonResult> GetRateCategoriesSelectedNotSelected([FromBody] string ServiceId)
+        {
+            var ratecategories = await _context.Ratecategories.Where(e => e.ServiceId == ServiceId && !_context.Ratedetails.AsNoTracking().Any(x => e.Id == x.CategoryId)).AsNoTracking().Select(e => new
+            {
+                id = e.Id,
+                lexo = e.Lexo,
+                grouping = e.RateGrouping,
+                conditions = e.CategoryConditions
+            }).AsNoTracking().ToListAsync();
+            return Json(ratecategories);
         }
     }
 }
