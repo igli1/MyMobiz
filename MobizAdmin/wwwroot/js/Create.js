@@ -2,7 +2,6 @@
 var RateCategoriesdNotSelected = [];
 var SelectedCategory;
 var ServiceRate;
-var TargetsList = [];
 var RateDetailsList = [];
 var DefaultButtonColor;
 //on Page load
@@ -116,17 +115,17 @@ function AddToSelectedTable(data) {
     $('#RatesCategoriesSelected').html('');
     var rows = "<tr> <th></th><th>Categorie</th><th>Grouping</th><th></th></tr>";
     for (var i = 0; i < data.length; i++) {
-        rows += "<tr>"
+        rows += "<tr>";
         rows += "<td><button type='button' class='tableBtn' onclick='RemoveRateCategories(this.value)' value='" + data[i].id + "'>⇓</button></td>";
         rows += "<td>" + data[i].lexo + "</td>";
         rows += "<td>" + data[i].grouping + "</td>";
         rows += "<td><button type='button' onclick='RatesDetails(this.value)' value='" + data[i].id + "' id='selected" + data[i].id + "'>⇒</button></td>";
-        rows += "</tr>"
+        rows += "</tr>";
     }
     $('#RatesCategoriesSelected').append(rows);
     if (ServiceRate!=null)
     HasRateTargetsSelectedButton();
-    if (SelectedCategory != null) {
+    if (SelectedCategory != null && data!=null) {
         $('#selected'+SelectedCategory).css('background-color', 'red');
     }
 }
@@ -135,11 +134,11 @@ function AddToNotSelectedTable(data) {
     $('#RatesCategoriesNotSelected').html('');
     var rows = "<tr> <th></th><th>Categorie</th><th>Grouping</th><th></th></tr>";
     for (var i = 0; i < data.length; i++) {
-        rows += "<tr>"
+        rows += "<tr>";
         rows += "<td><button class='tableBtn' type='button' onclick='AddToRateCategories(this.value)' value='" + data[i].id + "'>⇑</button></td>";
         rows += "<td>" + data[i].lexo + "</td>";
         rows += "<td>" + data[i].grouping + "</td>";
-        rows += "</tr>"
+        rows += "</tr>";
 
     }
     $('#RatesCategoriesNotSelected').append(rows);
@@ -175,6 +174,7 @@ function RemoveRateCategories(val) {
         $('#CatId').val('');
         $('#RdId').val('');
         EmptiesDefaults();
+        $('#nOfRateTargets').val(nOfTargets());
     }
     for (var i = 0; i < RateCategoriesSelected.length; i++) {
         if (RateCategoriesSelected[i].id == val) {
@@ -210,12 +210,10 @@ function RatesDetails(val) {
         $('#selected' + SelectedCategory).css('background-color', 'red');
         $('#Conditions').val(RateCategoriesSelected.find(e => e.id == val).conditions);
         $('#CatId').val(val);
-        if (ServiceRate != null) {
-            var id = GetRatesDetailsIdAndIndex(val).id;
-            $('#RdId').val(id);
-            EmptiesDefaults();
-            DisplayTargets(id);
-        }
+        var index = GetRatesDetailsIdAndIndex(val);
+        $('#RdId').val(index);
+        EmptiesDefaults();
+        DisplayTargets(index);
     }
     else
         alert('Please Select Service Rate');
@@ -224,80 +222,68 @@ function RatesDetails(val) {
 function GetRatesDetailsIdAndIndex(val) {
     for (var i = 0; i < RateDetailsList.length; i++) {
         if (RateDetailsList[i].categoryid == val) {
-            return {
-                id: RateDetailsList[i].id,
-                index: i
-            };
-            break;
+            return i;
         }
     }
 }
 //Adds Categories to Rate Details Array
 function AddAllToRateDetails() {
     RateDetailsList = [];
-    TargetsList = [];
     for (var i = 0; i < RateCategoriesSelected.length; i++) {
         RateDetailsList.push({
-            id: i+1,
             vernum: ServiceRate.VerNum,
             categoryid: RateCategoriesSelected[i].id,
-            detailconditions: RateCategoriesSelected[i].conditions
+            detailconditions: RateCategoriesSelected[i].conditions,
+            ratetargets:[]
         });
     }
     $('#nOfRateDetails').val(RateDetailsList.length);
 }
 //Creates new Rates Detail for Created Category
 function AddToRateDetails(categoryid, detailconditions) {
-    var id;
-    if (RateDetailsList.length == 0) {
-        id = 1;
-    }
-    else {
-        id = parseInt(RateDetailsList[RateDetailsList.length - 1].id) + 1;
-    }
     RateDetailsList.push({
-        id: id,
         vernum: ServiceRate.VerNum,
         categoryid: categoryid,
-        detailconditions: detailconditions
+        detailconditions: detailconditions,
+        ratetargets: []
     });
     $('#nOfRateDetails').val(RateDetailsList.length);
 }
 //Removes Categories From Rate Details Array
 function RemoveFromRateDetails(val) {
     var rd = GetRatesDetailsIdAndIndex(val);
-    RemoveFromRateTargets(rd.id);
-    RateDetailsList.splice(rd.index, 1);
+    RateDetailsList.splice(rd, 1);
     $('#nOfRateDetails').val(RateDetailsList.length);
+    $('#nOfRateTargets').val(nOfTargets());
 }
 //Adds Defaults to Rates Targets Array
 function AddToRateTargets(val) {
-    TargetsList.push({
-        RateDetailId: $('#RdId').val(),
-        RateTarget: val,
+    var index = GetRatesDetailsIdAndIndex(SelectedCategory);
+    RateDetailsList[index].ratetargets.push({
+        ratetargets: val,
         RateFigure: $('#' + val + 'Figure').val(),
         RateOperator: $('#' + val + 'Op').val()
     });
-    $('#nOfRateTargets').val(TargetsList.length);
+    $('#nOfRateTargets').val(nOfTargets());
 }
 //Removes Defaults From Rates Targets Array
 function RemoveDefaultsFromRateTargets(val) {
-    for (var i = 0; i < TargetsList.length; i++) {
-        if (TargetsList[i].RateTarget == val) {
-            TargetsList.splice(i, 1);
+    var index = GetRatesDetailsIdAndIndex(SelectedCategory);
+    for (var i = 0; i < RateDetailsList[index].ratetargets.length; i++) {
+        if (RateDetailsList[index].ratetargets[i].RateTarget == val) {
+            RateDetailsList[index].ratetargets.splice(i, 1);
         }
     }
-    $('#nOfRateTargets').val(TargetsList.length);
+    $('#nOfRateTargets').val(nOfTargets());
 }
-// Removes Rate Details From Rates Targets Array
-function RemoveFromRateTargets(val) {
-    for (var i = 0; i < TargetsList.length; i++) {
-        if (TargetsList[i].RateDetailId == val) {
-            TargetsList.splice(i, 1);
-            i -= 1;
-        }
+//Count number of targets
+function nOfTargets() {
+    var count = 0;
+    for (var i = 0; i < RateDetailsList.length; i++) {
+        if('ratetargets' in RateDetailsList[i])
+            count += RateDetailsList[i].ratetargets.length;
     }
-    $('#nOfRateTargets').val(TargetsList.length);
+    return count;
 }
 //If Defaults Checkbox is clicked
 function DefaultsCheckBox(val) {
@@ -369,26 +355,28 @@ function SimulateTrip() {
                 EurMinWait: null
             };
             var price;
-            for (var i = 0; i < TargetsList.length; i++) {
-                var previousPrice = 0;
-                if (newRate[TargetsList[i].RateTarget] != null)
-                    previousPrice = newRate[TargetsList[i].RateTarget];
-                switch (TargetsList[i].RateOperator) {
-                    case "+":
-                        newRate[TargetsList[i].RateTarget] = previousPrice + (ServiceRate[TargetsList[i].RateTarget] + TargetsList[i].RateFigure);
-                        break;
-                    case "*":
-                        newRate[TargetsList[i].RateTarget] = previousPrice + (ServiceRate[TargetsList[i].RateTarget] * TargetsList[i].RateFigure);
-                        break;
-                    case "=":
-                        newRate[TargetsList[i].RateTarget] = previousPrice + (ServiceRate[TargetsList[i].RateTarget] = TargetsList[i].RateFigure);
-                        break;
-                    case "%":
-                        newRate[TargetsList[i].RateTarget] = previousPrice + (ServiceRate[TargetsList[i].RateTarget] + ((TargetsList[i].RateFigure / 100) * ServiceRate[TargetsList[i].RateTarget]));
-                        break;
+            for (var i = 0; i < RateDetailsList.length; i++) {
+                for (var j = 0; j < RateDetailsList[i].ratetargets.length; j++) {
+                    var previousPrice = 0;
+                    if (newRate[RateDetailsList[i].ratetargets[j].RateTarget] != null)
+                        previousPrice = newRate[RateDetailsList[i].ratetargets[j].RateTarget];
+                    switch (RateDetailsList[i].ratetargets[j].RateOperator) {
+                        case "+":
+                            newRate[RateDetailsList[i].ratetargets[j].RateTarget] = previousPrice + (ServiceRate[RateDetailsList[i].ratetargets[j].RateTarget] + RateDetailsList[i].ratetargets[j].RateFigure);
+                            break;
+                        case "*":
+                            newRate[RateDetailsList[i].ratetargets[j].RateTarget] = previousPrice + (ServiceRate[RateDetailsList[i].ratetargets[j].RateTarget] * RateDetailsList[i].ratetargets[j].RateFigure);
+                            break;
+                        case "=":
+                            newRate[RateDetailsList[i].ratetargets[j].RateTarget] = previousPrice + (ServiceRate[RateDetailsList[i].ratetargets[j].RateTarget] = RateDetailsList[i].ratetargets[j].RateFigure);
+                            break;
+                        case "%":
+                            newRate[RateDetailsList[i].ratetargets[j].RateTarget] = previousPrice + (ServiceRate[RateDetailsList[i].ratetargets[j].RateTarget] + ((RateDetailsList[i].ratetargets[j].RateFigure / 100) * ServiceRate[RateDetailsList[i].ratetargets[j].RateTarget]));
+                            break;
+                    }
                 }
             }
-            price = (($('#Kms').val() * newRate["EurKm"]) + ($('#Drive').val() * newRate["EurMinDrive"]) + ($('#Wait').val() * newRate["EurMinWait"]));
+            price = (($('#Kms').val() * newRate.EurKm) + ($('#Drive').val() * newRate.EurMinDrive) + ($('#Wait').val() * newRate.EurMinWait));
             if (price < ServiceRate.EurMinimum)
                 price = ServiceRate.EurMinimum;
             $('#Total').val(price);
@@ -415,34 +403,74 @@ function EmptiesDefaults() {
         if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).prop('checked', false);
         }
-        else {
+        else if (this.type != 'button' && this.type!='reset') {
             $('#' + this.attributes.id.nodeValue).val('');
         }
     });
 }
 //Displays Rate Targets for selected Rate Category and Rate Detail
 function DisplayTargets(val) {
-    for (var i=0; i < TargetsList.length; i++) {
-        if (TargetsList[i].RateDetailId == val) {
-            $('#' + TargetsList[i].RateTarget + 'Op').val(TargetsList[i].RateOperator);
-            $('#' + TargetsList[i].RateTarget + 'Figure').val(TargetsList[i].RateFigure);
-            $('#' + TargetsList[i].RateTarget + 'Checkbox').prop('checked', true);
+    if ('ratetargets' in RateDetailsList[val]) {
+        for (var i = 0; i < RateDetailsList[val].ratetargets.length; i++) {
+            $('#' + RateDetailsList[val].ratetargets[i].RateTarget + 'Op').val(RateDetailsList[val].ratetargets[i].RateOperator);
+            $('#' + RateDetailsList[val].ratetargets[i].RateTarget + 'Figure').val(RateDetailsList[val].ratetargets[i].RateFigure);
+            $('#' + RateDetailsList[val].ratetargets[i].RateTarget + 'Checkbox').prop('checked', true);
         }
-    }
+    }  
 }
-//Change color of select button if Rate Categories - Rate Details have Rate Targets
+//Change color of select button to blue if Rate Categories - Rate Details have Rate Targets
 function HasRateTargetsSelectedButton() {
     for (var i = 0; i < RateCategoriesSelected.length; i++) {
-        var id = GetRatesDetailsIdAndIndex(RateCategoriesSelected[i].id).id;
-        for (var j = 0; j < TargetsList.length; j++) {
-            if (TargetsList[j].RateDetailId == id) {
+        var index = GetRatesDetailsIdAndIndex(RateCategoriesSelected[i].id);
+        if ('ratetargets' in RateDetailsList[index]) {
+            if (RateDetailsList[index].ratetargets.length > 0)
                 $('#selected' + RateCategoriesSelected[i].id).css('background-color', 'blue');
-            }      
-        }
+        }       
     }
 }
 //Block special characters for Rate Operator
 function blockSpecialChar(event) {
     var e = event.key;
     return (e=='+' || e=='*' || e=='%' || e=='=');
+}
+//Saves Data to Database
+function Save() {
+    if ($('#ServiceSelect').val() == "null") {
+        alert('No Service Selected!');
+    }
+    else if (ServiceRate == null) {
+        alert('No Service Rate Selected!');
+    }
+    else if (RateDetailsList == null) {
+        alert('No Rate Details Created!');
+    }
+    else {
+        var r = confirm("Creating: " + RateDetailsList.length + " Rate Details and: " + nOfTargets() + " Rate Targets.");
+        if (r == true) {
+            var s = {
+                ratedetails: RateDetailsList
+            };
+            var a = RateDetailsList.toLocaleString()
+            console.log(s);
+            PostData(s);
+         }
+    }
+}
+//Resets the page
+function Reset() {
+    RateCategoriesSelected = [];
+    RateCategoriesdNotSelected = [];
+    RateDetailsList = [];
+    SelectedCategory=null;
+    ServiceRate=null;
+    DefaultButtonColor=null;
+    AddToSelectedTable(RateCategoriesSelected);
+    AddToNotSelectedTable(RateCategoriesdNotSelected);
+}
+function PostData(val) {
+    AjaxCall('AddRateDetails', JSON.stringify(val), 'POST').done(function (response) {
+        alert('Success');
+    }).fail(function (error) {
+        alert(error.StatusText);
+    });
 }

@@ -260,5 +260,14 @@ namespace MobizAdmin.Controllers
             }).AsNoTracking().ToListAsync();
             return Json(ratecategories);
         }
+        [HttpPost]
+        [Authorize]
+        public async Task<JsonResult> AddRateDetails([FromBody] DTRateDetails a)
+        {
+            List<Ratedetails> ratedetails = a.ratedetails;
+            await _context.Ratedetails.AddRangeAsync(ratedetails);
+            await _context.SaveChangesAsync();
+            return Json("Ok");
+        }
     }
 }

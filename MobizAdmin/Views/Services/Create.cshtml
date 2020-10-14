@@ -1,4 +1,6 @@
-﻿@{
+﻿@model MobizAdmin.Data.Ratedetails
+
+@{
     ViewData["Title"] = "Create";
 }
 <div class="container2">
@@ -133,12 +135,12 @@
             </div>
         </div>
         <div class="rightpane" name="Default" id="Defaults">
-            <h4 >Defaults</h4>
+            <h4>Defaults</h4>
             <div name="EurKm" id="EurKm">
                 <label>EurKm:</label>
                 <input size="1" id="EurKmOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
                 <input width="3" id="EurKmFigure" name="Figure" type="number" />
-                <input type="checkbox" value="EurKm" name="EurKmCheckbox"class="chBox" onchange="DefaultsCheckBox(this.value)" id="EurKmCheckbox" />
+                <input type="checkbox" value="EurKm" name="EurKmCheckbox" class="chBox" onchange="DefaultsCheckBox(this.value)" id="EurKmCheckbox" />
             </div>
             <div name="EurMinDrive" id="EurMinDrive">
                 <label>EurMinDrive:</label>
@@ -162,6 +164,15 @@
                 <input size="1" id="MaxPaxOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
                 <input width="25" id="MaxPaxFigure" name="Figure" type="number" />
                 <input type="checkbox" value="MaxPax" onchange="DefaultsCheckBox(this.value)" id="MaxPaxCheckbox" />
+            </div>
+            <div>
+                <br /><br />
+                <span>
+                    <button type="button" onclick="Save()" style="float:left;margin-right:20px;">Save</button>
+                </span>
+                <span>
+                    <button type="reset" onclick="Reset()" style="float:left;">Reset</button>
+                </span>
             </div>
         </div>
     </form>
