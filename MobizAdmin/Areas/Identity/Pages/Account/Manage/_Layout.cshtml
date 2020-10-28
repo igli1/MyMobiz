@@ -1,0 +1,22 @@
+﻿@{
+    Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+}
+
+    <h1>@MobizAdmin.Resources.Authentication.Authentication.Manage_your_account</h1>
+
+<div>
+    <h4>@MobizAdmin.Resources.Authentication.Authentication.Chang__your_account_settings</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-3">
+            <partial name="_ManageNav" />
+        </div>
+        <div class="col-md-9">
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

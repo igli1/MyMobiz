@@ -27,7 +27,7 @@ a {
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 @media (min-width: 768px) {
   html {
@@ -73,10 +73,7 @@ body {
 tr:hover {
     background-color: cyan;
 }
-body, html {
-    width: 100%;
-    margin: 0;
-}
+
 
 .container2 {
     width: 100%;
@@ -100,7 +97,7 @@ body, html {
 }
 
 .rightpane {
-    width: 33.33%;
+    width: 33.34%;
     height: auto;
     position: relative;
     float: right;
@@ -118,4 +115,15 @@ body, html {
 }
 label.error {
         color: red;
+}
+.rightpane input[type=checkbox]{
+    display: none;
+}
+.imgLabel img {
+    height: 35px;
+    width: 35px;
+    content: url('../Images/unchecked.png');
+}
+input[type="checkbox"]:checked + .imgLabel img {
+    content: url('../Images/checked.png');
 }

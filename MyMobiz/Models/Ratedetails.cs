@@ -13,7 +13,6 @@ namespace MyMobiz.Models
         public int Id { get; set; }
         public int Vernum { get; set; }
         public int CategoryId { get; set; }
-        public string Lexo { get; set; }
         public string DetailConditions { get; set; }
         public DateTime Tsi { get; set; }
         public DateTime? Tsu { get; set; }

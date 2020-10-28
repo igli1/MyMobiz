@@ -1,0 +1,196 @@
+﻿@{
+    ViewData["Title"] = "Create";
+}
+<div class="container2">
+    <form class="create">
+        <div class="toppane">
+            <div class="form-group">
+                <span>
+                    <label class="control-label">@MobizAdmin.Resources.Create.Create.Select_Service</label>
+                    <select asp-items="@ViewBag.Services" onchange="ServiceSelected(this.value)" id="ServiceSelect">
+                        <option value="">-@MobizAdmin.Resources.Create.Create.Select_Service-</option>
+                    </select>
+                </span>
+                <span style="float:right;">
+                    <label class="control-label">@MobizAdmin.Resources.Create.Create.Select_Language</label>
+                    <select id="LanguageSelect">
+                        <option value="">-Default-</option>
+                    </select>
+                </span>
+            </div>
+            <div class="form-group">
+                <label id="SelectRate" class="control-label">@MobizAdmin.Resources.Create.Create.Select_Service_Rate</label>
+                <select id="ServiceRateSelect" onchange="ServiceRateSelected(this.value)">
+                    <option value="">-@MobizAdmin.Resources.Create.Create.Select_Service_Rate-</option>
+                </select>
+            </div>
+            <div class="ServiceDetails">
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.ServiceId</label>
+                    <input readonly id="ServiceId" />
+                </span>
+                <span style="float:left">
+                    <label>@MobizAdmin.Resources.Create.Create.ServiceName</label>
+                    <input readonly id="ServiceName" />
+                </span>
+            </div>
+            <br style="clear:both;" />
+            <div class="details">
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.defDate</label>
+                    <input readonly id="defDate" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.appDate</label>
+                    <input readonly id="appDate" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.endDate</label>
+                    <input readonly id="endDate" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.verNum</label>
+                    <input readonly id="verNum" size="1" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.Categories_Count</label>
+                    <input readonly id="nOfCategories" value="0" size="1" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.Details_Count</label>
+                    <input readonly id="nOfRateDetails" value="0" size="1" />
+                </span>
+                <span style="float:left;">
+                    <label>@MobizAdmin.Resources.Create.Create.Targets_Count</label>
+                    <input readonly id="nOfRateTargets" value="0" size="1" />
+                </span>
+            </div>
+            <br style="clear:both;" />
+            <div>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.Category_Id</label>
+                    <input readonly size="1" id="CatId" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.Rates_Details_Id</label>
+                    <input readonly size="1" id="RdId" />
+                </span>
+                <span style="float:left;margin-right:20px;">
+                    <label>@MobizAdmin.Resources.Create.Create.Rates_Details_VerNum</label>
+                    <input readonly size="1" id="RdVerNum" />
+                </span>
+            </div>
+        </div>
+        <br style="clear:both;" />
+        <h4 style="text-align: center;">@MobizAdmin.Resources.Create.Create.Rates_Details</h4>
+        <hr />
+        <div class="leftpane">
+            <h4>@MobizAdmin.Resources.Create.Create.Rates_Details</h4>
+            <table id="RatesDetails" data-Categorie=@MobizAdmin.Resources.Create.Create.Categorie 
+                   data-Grouping=@MobizAdmin.Resources.Create.Create.Grouping>
+            </table>
+            <hr width="100%" />
+            <h4>@MobizAdmin.Resources.Create.Create.Rates_Categories</h4>
+            <table id="RatesCategories" data-Categorie=@MobizAdmin.Resources.Create.Create.Categorie 
+                   data-Grouping=@MobizAdmin.Resources.Create.Create.Grouping>
+            </table>
+        </div>
+        <div class="middlepane">
+            <h4>@MobizAdmin.Resources.Create.Create.Conditions</h4>
+            <textarea class="form-control" id="Conditions"></textarea>
+            <h4 class="control-label">@MobizAdmin.Resources.Create.Create.Variables</h4>
+            <div id="Variables" name="Variables">
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Date_Time_Order</label>
+                    <input type="datetime-local">
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Date_Time_PickUp</label>
+                    <input type="datetime-local" id="DateTimePickUp">
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Kms</label>
+                    <input type="number" name="Kms" id="Kms" />
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Minutes_Drive</label>
+                    <input type="number" name="Drive" id="Drive" />
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Minutes_Wait</label>
+                    <input type="number" name="Wait" id="Wait" />
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Pax</label>
+                    <input type="number" id="Pax" />
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Vehicle</label>
+                    <input id="Vehicle" />
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Promo_Code</label>
+                    <input id="Promo" />
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Business</label>
+                    <input id="Business" />
+                </div>
+                <div>
+                    <br />
+                    <button type="button" onclick="SimulateTrip()">@MobizAdmin.Resources.Create.Create.Simulate</button>
+                </div>
+                <div>
+                    <label>@MobizAdmin.Resources.Create.Create.Price</label>
+                    <input readonly id="Total" />
+                </div>
+            </div>
+        </div>
+        <div class="rightpane" name="Default" id="Defaults">
+            <h4>@MobizAdmin.Resources.Create.Create.Defaults</h4>
+            <div name="EurKm" id="EurKm">
+                <label>@MobizAdmin.Resources.Create.Create.EurKm:</label>
+                <input size="1" id="EurKmOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
+                <input ma width="3" id="EurKmFigure" name="Figure" type="number" />
+                <input type="checkbox" value="EurKm" name="EurKmCheckbox" class="chBox" onchange="RateTargetCheckBox(this.value)" id="EurKmCheckbox" />
+                <label style="display:inline" for="EurKmCheckbox" class="imgLabel"><img></label>
+            </div>
+            <div name="EurMinDrive" id="EurMinDrive">
+                <label>@MobizAdmin.Resources.Create.Create.EurMinDrive:</label>
+                <input size="1" id="EurMinDriveOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
+                <input width="25" id="EurMinDriveFigure" name="Figure" type="number" />
+                <input type="checkbox" value="EurMinDrive" onchange="RateTargetCheckBox(this.value)" id="EurMinDriveCheckbox" />
+                <label style="display:inline" for="EurMinDriveCheckbox" class="imgLabel"><img></label>
+            </div>
+            <div name="EurMinWait" id="EurMinWait">
+                <label>@MobizAdmin.Resources.Create.Create.EurMinWait:</label>
+                <input size="1" id="EurMinWaitOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
+                <input width="25" id="EurMinWaitFigure" name="Figure" type="number" />
+                <input type="checkbox" value="EurMinWait" onchange="RateTargetCheckBox(this.value)" id="EurMinWaitCheckbox" />
+                <label style="display:inline" for="EurMinWaitCheckbox" class="imgLabel"><img></label>
+            </div>
+            <div name="EurMinimum" id="EurMinimum">
+                <label>@MobizAdmin.Resources.Create.Create.EurMinimum:</label>
+                <input width="25" id="EurMinimumFigure" name="Figure" type="number" />
+                <input type="checkbox" value="EurMinimum" onchange="RateTargetCheckBox(this.value)" id="EurMinimumCheckbox" />
+                <label style="display:inline" for="EurMinimumCheckbox" class="imgLabel"><img></label>
+            </div>
+            <div name="MaxPax" id="MaxPax">
+                <label>@MobizAdmin.Resources.Create.Create.MaxPax:</label>
+                <input size="1" id="MaxPaxOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
+                <input width="25" id="MaxPaxFigure" name="Figure" type="number" />
+                <input type="checkbox" value="MaxPax" onchange="RateTargetCheckBox(this.value)" id="MaxPaxCheckbox" />
+                <label style="display:inline" for="MaxPaxCheckbox" class="imgLabel"><img></label>
+            </div>
+            <div name="Total" id="Total">
+                <label>@MobizAdmin.Resources.Create.Create.Total:</label>
+                <input width="25" id="TotalFigure" name="Figure" type="number" />
+                <input type="checkbox" value="Total" onchange="RateTargetCheckBox(this.value)" id="TotalCheckbox" />
+                <label style="display:inline" for="TotalCheckbox" class="imgLabel"><img></label>
+            </div>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <script src="~/js/Create2.js"></script>
+}

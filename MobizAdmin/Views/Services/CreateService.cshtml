@@ -1,41 +1,41 @@
 ﻿@model MobizAdmin.Data.Services
 
 @{
-    ViewData["Title"] = "CreateService";
+    ViewData["Title"] = MobizAdmin.Resources.Services.ServicesText.Create_Service;
 }
 
-<h1>Create Service</h1>
+    <h1> @MobizAdmin.Resources.Services.ServicesText.Create_Service</h1>
 
-<h4>Services</h4>
+    <h4> @MobizAdmin.Resources.Services.ServicesText.Services</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="CreateService">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="ServiceName" class="control-label"></label>
+                <label asp-for="ServiceName" class="control-label">@MobizAdmin.Resources.Services.ServicesText.Service_Name</label>
                 <input asp-for="ServiceName" required class="form-control" />
                 <span asp-validation-for="ServiceName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ApiKey" class="control-label"></label>
+                <label asp-for="ApiKey" class="control-label">@MobizAdmin.Resources.Services.ServicesText.ApiKey</label>
                 <input asp-for="ApiKey" class="form-control" />
                 <span asp-validation-for="ApiKey" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Tsd" class="control-label"></label>
+                <label asp-for="Tsd" class="control-label">@MobizAdmin.Resources.Services.ServicesText.Tsd</label>
                 <input asp-for="Tsd" class="form-control" />
                 <span asp-validation-for="Tsd" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value=@MobizAdmin.Resources.Services.ServicesText.Create class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="ServicesList">Back to List</a>
+    <a asp-action="ServicesList">@MobizAdmin.Resources.Services.ServicesText.Back_to_List</a>
 </div>
 
 @section Scripts {

@@ -191,12 +191,6 @@ namespace MobizAdmin.Data
                     .HasCharSet("utf8")
                     .HasCollation("utf8_general_ci");
 
-                entity.Property(e => e.Lexo)
-                    .HasColumnName("lexo")
-                    .HasColumnType("varchar(30)")
-                    .HasCharSet("utf8")
-                    .HasCollation("utf8_general_ci");
-
                 entity.Property(e => e.Tsd)
                     .HasColumnName("TSD")
                     .HasColumnType("datetime");

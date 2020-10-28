@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using MobizAdmin.Data;
 using MobizAdmin.Models;
@@ -12,13 +15,15 @@ namespace MobizAdmin.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IStringLocalizer<HomeController> _localizer;
         private readonly ILogger<HomeController> _logger;
         private readonly mymobiztestContext _context;
 
-        public HomeController(ILogger<HomeController> logger, mymobiztestContext context)
+        public HomeController(ILogger<HomeController> logger, mymobiztestContext context, IStringLocalizer<HomeController> localizer)
         {
             _logger = logger;
             _context = context;
+            _localizer = localizer;
         }
 
         public IActionResult Index()
@@ -65,6 +70,13 @@ namespace MobizAdmin.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        public IActionResult LanguageSelect(string lang)
+        {
+            var culture = CultureInfo.CreateSpecificCulture(lang);
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            return View();
         }
     }
 }

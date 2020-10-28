@@ -6,12 +6,10 @@ namespace MyMobiz.BackgroundServices
     public class QueueService : BackgroundService
     {
         private IBackgroundQueue _queue;
-
         public QueueService(IBackgroundQueue queue)
         {
             _queue = queue;
         }
-
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)

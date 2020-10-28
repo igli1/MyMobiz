@@ -1,22 +1,22 @@
 ﻿@model IEnumerable<MobizAdmin.Data.Services>
 
 @{
-    ViewData["Title"] = "ServicesList";
+    ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Services_List;
 }
 
-<h1>Services List</h1>
+    <h1>@MobizAdmin.Resources.Layout.Layout.Services_List</h1>
 
 <p>
-    <a asp-action="CreateService">Create New</a>
+    <a asp-action="CreateService">@MobizAdmin.Resources.Services.ServicesText.Create_New</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Id)
+                @MobizAdmin.Resources.Services.ServicesText.Id
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ServiceName)
+                @MobizAdmin.Resources.Services.ServicesText.Service_Name
             </th>
             <th></th>
         </tr>
@@ -31,8 +31,8 @@
                 @Html.DisplayFor(modelItem => item.ServiceName)
             </td>
             <td>
-                <a asp-action="ServiceRates" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName">Service Rates</a> |
-                <a asp-action="ServiceDetails" asp-route-ServiceId="@item.Id">Service Details</a>
+                <a asp-action="ServiceRates" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName">@MobizAdmin.Resources.Services.ServicesText.Service_Rates</a> |
+                <a asp-action="ServiceDetails" asp-route-ServiceId="@item.Id">@MobizAdmin.Resources.Services.ServicesText.Service_Details</a>
             </td>
         </tr>
 }

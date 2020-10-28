@@ -457,7 +457,7 @@ function Save() {
     }
 }
 //Resets the page
-function Reset() {
+function ResetInServiceSelect() {
     RateCategoriesSelected = [];
     RateCategoriesdNotSelected = [];
     RateDetailsList = [];

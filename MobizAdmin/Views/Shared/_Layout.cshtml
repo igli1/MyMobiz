@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - MobizAdmin</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> <! -- Allow insecure request Http -->
 </head>
 <body>
     <header>
@@ -20,19 +21,19 @@
                     <partial name="_LoginPartial" />
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">@MobizAdmin.Resources.Layout.Layout.Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">@MobizAdmin.Resources.Layout.Layout.Privacy</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Services" asp-action="ServicesList">Services</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Services" asp-action="ServicesList">@MobizAdmin.Resources.Layout.Layout.Services_List</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Services" asp-action="CreateServiceDetails">Create Service Details</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Create" asp-action="Create">@MobizAdmin.Resources.Layout.Layout.Create</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Services" asp-action="Create">Create</a>
+                            @await Html.PartialAsync("_CulturePartial")
                         </li>
                     </ul>
                 </div>
@@ -47,7 +48,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2020 - MobizAdmin - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2020 - MobizAdmin - <a asp-area="" asp-controller="Home" asp-action="Privacy">@MobizAdmin.Resources.Layout.Layout.Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

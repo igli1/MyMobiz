@@ -1,47 +1,47 @@
 ﻿@model MobizAdmin.Data.Services
 
 @{
-    ViewData["Title"] = "ServiceDetails";
+    ViewData["Title"] = MobizAdmin.Resources.Services.ServicesText.Service_Details;
 }
 
-<h1>Service Details</h1>
+    <h1>@MobizAdmin.Resources.Services.ServicesText.Service_Details</h1>
 
 <div>
-    <h4>Services</h4>
+    <h4>@MobizAdmin.Resources.Services.ServicesText.Services</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Id)
+            @MobizAdmin.Resources.Services.ServicesText.Id
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Id)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ServiceName)
+            @MobizAdmin.Resources.Services.ServicesText.Service_Name
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ServiceName)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApiKey)
+            @MobizAdmin.Resources.Services.ServicesText.ApiKey
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.ApiKey)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Tsi)
+            @MobizAdmin.Resources.Services.ServicesText.Tsi
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Tsi)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Tsu)
+            @MobizAdmin.Resources.Services.ServicesText.Tsu
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Tsu)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Tsd)
+            @MobizAdmin.Resources.Services.ServicesText.Tsd
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Tsd)
@@ -49,6 +49,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="EditService" asp-route-ServiceId="@Model.Id">Edit</a> |
-    <a asp-action="ServicesList">Back to List</a>
+    <a asp-action="EditService" asp-route-ServiceId="@Model.Id">@MobizAdmin.Resources.Services.ServicesText.Edit</a> |
+    <a asp-action="ServicesList">@MobizAdmin.Resources.Services.ServicesText.Back_to_List</a>
 </div>

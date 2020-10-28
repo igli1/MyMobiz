@@ -1,80 +1,80 @@
 ﻿@model MobizAdmin.Data.Servicerates
 
 @{
-    ViewData["Title"] = "CreateServiceRate";
+    ViewData["Title"] = MobizAdmin.Resources.Services.ServicesText.Create_Service_Rate;
 }
 
-<h1>CreateServiceRate</h1>
+    <h1>@MobizAdmin.Resources.Services.ServicesText.Create_Service_Rate</h1>
 
-<h4>Service rates</h4>
-<h4>Service Name: <u>@ViewData["ServiceName"]</u></h4>
+    <h4>@MobizAdmin.Resources.Services.ServicesText.Service_Rates</h4>
+    <h4>@MobizAdmin.Resources.Services.ServicesText.Service_Name: <u>@ViewData["ServiceName"]</u></h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="CreateServiceRate" asp-route-ServiceName="@ViewData["ServiceName"]">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="ServiceId" class="control-label"></label>
+                <label asp-for="ServiceId" class="control-label">@MobizAdmin.Resources.Services.ServicesText.Service_Id</label>
                 <input asp-for="ServiceId" value="@ViewData["ServiceId"]" readonly class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="DefDate" class="control-label"></label>
+                <label asp-for="DefDate" class="control-label">@MobizAdmin.Resources.Services.ServicesText.DefDate</label>
                 <input asp-for="DefDate" class="form-control" />
                 <span asp-validation-for="DefDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="AppDate" class="control-label"></label>
+                <label asp-for="AppDate" class="control-label">@MobizAdmin.Resources.Services.ServicesText.AppDate</label>
                 <input asp-for="AppDate" class="form-control" />
                 <span asp-validation-for="AppDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
+                <label asp-for="EndDate" class="control-label">@MobizAdmin.Resources.Services.ServicesText.EndDate</label>
                 <input asp-for="EndDate" class="form-control" />
                 <span asp-validation-for="EndDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EurKm" class="control-label"></label>
+                <label asp-for="EurKm" class="control-label">@MobizAdmin.Resources.Services.ServicesText.EurKm</label>
                 <input asp-for="EurKm" class="form-control" />
                 <span asp-validation-for="EurKm" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EurMinDrive" class="control-label"></label>
+                <label asp-for="EurMinDrive" class="control-label">@MobizAdmin.Resources.Services.ServicesText.EurMinDrive</label>
                 <input asp-for="EurMinDrive" class="form-control" />
                 <span asp-validation-for="EurMinDrive" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EurMinWait" class="control-label"></label>
+                <label asp-for="EurMinWait" class="control-label">@MobizAdmin.Resources.Services.ServicesText.EurMinWait</label>
                 <input asp-for="EurMinWait" class="form-control" />
                 <span asp-validation-for="EurMinWait" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EurMinimum" class="control-label"></label>
+                <label asp-for="EurMinimum" class="control-label">@MobizAdmin.Resources.Services.ServicesText.EurMinimum</label>
                 <input asp-for="EurMinimum" class="form-control" />
                 <span asp-validation-for="EurMinimum" class="text-danger"></span>
             </div>
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Locked" /> @Html.DisplayNameFor(model => model.Locked)
+                    <input class="form-check-input" asp-for="Locked" /> @MobizAdmin.Resources.Services.ServicesText.Locked
                 </label>
             </div>
             <div class="form-group">
-                <label asp-for="Lexo" class="control-label"></label>
+                <label asp-for="Lexo" class="control-label">@MobizAdmin.Resources.Services.ServicesText.Lexo</label>
                 <input asp-for="Lexo" class="form-control" />
                 <span asp-validation-for="Lexo" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Tsd" class="control-label"></label>
+                <label asp-for="Tsd" class="control-label">@MobizAdmin.Resources.Services.ServicesText.Tsd</label>
                 <input asp-for="Tsd" class="form-control" />
                 <span asp-validation-for="Tsd" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value=@MobizAdmin.Resources.Services.ServicesText.Create class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">@MobizAdmin.Resources.Services.ServicesText.Back_to_List</a>
 </div>
 
