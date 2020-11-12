@@ -1,22 +1,15 @@
 ﻿@{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
 }
+
 <div class="container2">
     <form class="create">
         <div class="toppane">
             <div class="form-group">
-                <span>
-                    <label class="control-label">@MobizAdmin.Resources.Create.Create.Select_Service</label>
-                    <select asp-items="@ViewBag.Services" onchange="ServiceSelected(this.value)" id="ServiceSelect">
-                        <option value="">-@MobizAdmin.Resources.Create.Create.Select_Service-</option>
-                    </select>
-                </span>
-                <span style="float:right;">
-                    <label class="control-label">@MobizAdmin.Resources.Create.Create.Select_Language</label>
-                    <select id="LanguageSelect">
-                        <option value="">-Default-</option>
-                    </select>
-                </span>
+                <label class="control-label">@MobizAdmin.Resources.Create.Create.Select_Service</label>
+                <select asp-items="@ViewBag.Services" onchange="ServiceSelected(this.value)" id="ServiceSelect">
+                    <option value="">-@MobizAdmin.Resources.Create.Create.Select_Service-</option>
+                </select>
             </div>
             <div class="form-group">
                 <label id="SelectRate" class="control-label">@MobizAdmin.Resources.Create.Create.Select_Service_Rate</label>
@@ -82,12 +75,12 @@
         <hr />
         <div class="leftpane">
             <h4>@MobizAdmin.Resources.Create.Create.Rates_Details</h4>
-            <table id="RatesDetails" data-Categorie=@MobizAdmin.Resources.Create.Create.Categorie 
+            <table id="RatesDetails" data-Categorie=@MobizAdmin.Resources.Create.Create.Categorie
                    data-Grouping=@MobizAdmin.Resources.Create.Create.Grouping>
             </table>
             <hr width="100%" />
             <h4>@MobizAdmin.Resources.Create.Create.Rates_Categories</h4>
-            <table id="RatesCategories" data-Categorie=@MobizAdmin.Resources.Create.Create.Categorie 
+            <table id="RatesCategories" data-Categorie=@MobizAdmin.Resources.Create.Create.Categorie
                    data-Grouping=@MobizAdmin.Resources.Create.Create.Grouping>
             </table>
         </div>
@@ -147,46 +140,51 @@
             <div name="EurKm" id="EurKm">
                 <label>@MobizAdmin.Resources.Create.Create.EurKm:</label>
                 <input size="1" id="EurKmOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
-                <input ma width="3" id="EurKmFigure" name="Figure" type="number" />
+                <input size="1" id="EurKmFigure" name="Figure" type="number" />
+                <input size="1" id="EurKmDefault" name="Default" type="number" />
                 <input type="checkbox" value="EurKm" name="EurKmCheckbox" class="chBox" onchange="RateTargetCheckBox(this.value)" id="EurKmCheckbox" />
                 <label style="display:inline" for="EurKmCheckbox" class="imgLabel"><img></label>
             </div>
             <div name="EurMinDrive" id="EurMinDrive">
                 <label>@MobizAdmin.Resources.Create.Create.EurMinDrive:</label>
                 <input size="1" id="EurMinDriveOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
-                <input width="25" id="EurMinDriveFigure" name="Figure" type="number" />
-                <input type="checkbox" value="EurMinDrive" onchange="RateTargetCheckBox(this.value)" id="EurMinDriveCheckbox" />
+                <input size="1" id="EurMinDriveFigure" name="Figure" type="number" />
+                <input size="1" id="EurMinDriveDefault" name="Default" type="number" />
+                <input type="checkbox" value="EurMinDrive" name="EurMinDriveCheckbox" onchange="RateTargetCheckBox(this.value)" id="EurMinDriveCheckbox" />
                 <label style="display:inline" for="EurMinDriveCheckbox" class="imgLabel"><img></label>
             </div>
             <div name="EurMinWait" id="EurMinWait">
                 <label>@MobizAdmin.Resources.Create.Create.EurMinWait:</label>
                 <input size="1" id="EurMinWaitOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
-                <input width="25" id="EurMinWaitFigure" name="Figure" type="number" />
-                <input type="checkbox" value="EurMinWait" onchange="RateTargetCheckBox(this.value)" id="EurMinWaitCheckbox" />
+                <input size="1" id="EurMinWaitFigure" name="Figure" type="number" />
+                <input size="1" id="EurMinWaitDefault" name="Default" type="number" />
+                <input type="checkbox" value="EurMinWait" name="EurMinWaitCheckbox" onchange="RateTargetCheckBox(this.value)" id="EurMinWaitCheckbox" />
                 <label style="display:inline" for="EurMinWaitCheckbox" class="imgLabel"><img></label>
             </div>
             <div name="EurMinimum" id="EurMinimum">
                 <label>@MobizAdmin.Resources.Create.Create.EurMinimum:</label>
-                <input width="25" id="EurMinimumFigure" name="Figure" type="number" />
-                <input type="checkbox" value="EurMinimum" onchange="RateTargetCheckBox(this.value)" id="EurMinimumCheckbox" />
+                <input size="1" id="EurMinimumFigure" name="Figure" type="number" />
+                <input size="1" id="EurMinimumDefault" name="Default" type="number" />
+                <input type="checkbox" value="EurMinimum" name="EurMinimumCheckbox" onchange="RateTargetCheckBox(this.value)" id="EurMinimumCheckbox" />
                 <label style="display:inline" for="EurMinimumCheckbox" class="imgLabel"><img></label>
             </div>
             <div name="MaxPax" id="MaxPax">
                 <label>@MobizAdmin.Resources.Create.Create.MaxPax:</label>
                 <input size="1" id="MaxPaxOp" maxlength="1" onkeypress="return blockSpecialChar(event)" name="Op" />
-                <input width="25" id="MaxPaxFigure" name="Figure" type="number" />
-                <input type="checkbox" value="MaxPax" onchange="RateTargetCheckBox(this.value)" id="MaxPaxCheckbox" />
+                <input size="1" id="MaxPaxFigure" name="Figure" type="number" />
+                <input size="1" id="MaxPaxDefault" name="Default" type="number" />
+                <input type="checkbox" value="MaxPax" name="MaxPaxCheckbox" onchange="RateTargetCheckBox(this.value)" id="MaxPaxCheckbox" />
                 <label style="display:inline" for="MaxPaxCheckbox" class="imgLabel"><img></label>
             </div>
             <div name="Total" id="Total">
                 <label>@MobizAdmin.Resources.Create.Create.Total:</label>
-                <input width="25" id="TotalFigure" name="Figure" type="number" />
-                <input type="checkbox" value="Total" onchange="RateTargetCheckBox(this.value)" id="TotalCheckbox" />
+                <input size="1" id="TotalFigure" name="Figure" type="number" />
+                <input type="checkbox" value="Total" name="TotalCheckbox" onchange="RateTargetCheckBox(this.value)" id="TotalCheckbox" />
                 <label style="display:inline" for="TotalCheckbox" class="imgLabel"><img></label>
             </div>
         </div>
     </form>
 </div>
 @section Scripts {
-    <script src="~/js/Create2.js"></script>
+    <script src="~/js/Manager.js"></script>
 }

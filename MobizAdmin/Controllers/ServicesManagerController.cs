@@ -9,44 +9,18 @@ using MobizAdmin.Data;
 
 namespace MobizAdmin.Controllers
 {
-    public class CreateController : Controller
+    public class ServicesManagerController : Controller
     {
         public readonly mymobiztestContext _context;
-        public CreateController(mymobiztestContext context)
+        public ServicesManagerController(mymobiztestContext context)
         {
             _context = context;
         }
         [Authorize]
-        public IActionResult Create()
+        public IActionResult Manager()
         {
             ViewBag.Services = new SelectList(_context.Services.ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
             return View();
-        }
-        [Authorize]
-        public async Task<JsonResult> GetRateDetailsAndCategories([FromBody] string vernum)
-        {
-            int VerNum = Convert.ToInt32(vernum);
-            var query = await _context.Ratecategories.Where(rc => _context.Servicerates.Any(sr => sr.VerNum == VerNum && rc.ServiceId == sr.ServiceId)).Select(rc => new
-            {
-                lexo = rc.Lexo,
-                id = rc.Id,
-                grouping = rc.RateGrouping,
-                ratesDetails = rc.Ratedetails.Select(rd => new
-                {
-                    id = rd.Id,
-                    conditions = rd.DetailConditions,
-                    nQuotes=rd.VernumNavigation.NQuotes,
-                    locked=rd.VernumNavigation.Locked,
-                    rateTargets = rd.Ratetargets.Select(rt => new
-                    {
-                        id = rt.Id,
-                        target = rt.RateTarget,
-                        figure = rt.RateFigure,
-                        op = rt.RateOperator
-                    })
-                })
-            }).AsNoTracking().ToListAsync();
-            return Json(query);
         }
         [Authorize]
         public async Task<JsonResult> GetServiceRates([FromBody] string serviceId)
@@ -54,7 +28,7 @@ namespace MobizAdmin.Controllers
             var query = await _context.Servicerates.Where(e => e.ServiceId == serviceId).Select(e => new
             {
                 verNum = e.VerNum,
-                lexo = e.Lexo
+                lexo = e.Lexo,
             }).AsNoTracking().ToListAsync();
             return Json(query);
         }
@@ -77,6 +51,30 @@ namespace MobizAdmin.Controllers
             }).AsNoTracking().FirstOrDefaultAsync();
             return Json(query);
         }
+        [Authorize]
+        public async Task<JsonResult> GetRateDetailsAndCategories([FromBody] string vernum)
+        {
+            int VerNum = Convert.ToInt32(vernum);
+            var query = await _context.Ratecategories.Where(rc => _context.Servicerates.Any(sr => sr.VerNum == VerNum && rc.ServiceId == sr.ServiceId)).Select(rc => new
+            {
+                lexo = rc.Lexo,
+                id = rc.Id,
+                grouping = rc.RateGrouping,
+                ratesDetails = rc.Ratedetails.Where(rd=>rd.Vernum==VerNum).Select(rd => new
+                {
+                    id = rd.Id,
+                    conditions = rd.DetailConditions,
+                    rateTargets = rd.Ratetargets.Select(rt => new
+                    {
+                        id = rt.Id,
+                        target = rt.RateTarget,
+                        figure = rt.RateFigure,
+                        op = rt.RateOperator
+                    })
+                })
+            }).AsNoTracking().ToListAsync();
+            return Json(query);
+        }
         [HttpPost]
         [Authorize]
         public async Task<JsonResult> CreateRateDetails([FromBody] Ratedetails rd)
@@ -89,13 +87,13 @@ namespace MobizAdmin.Controllers
         public async Task<JsonResult> DeleteRateDetails([FromBody] DTIds ids)
         {
             _context.Ratedetails.Remove(_context.Ratedetails.Find(ids.RdId));
-            _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e=>e.RateDetailId== ids.RdId).AsNoTracking().ToListAsync());
+            _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e => e.RateDetailId == ids.RdId).AsNoTracking().ToListAsync());
             await _context.SaveChangesAsync();
             return Json(await GetRateCategorie(ids.RcId));
         }
         private async Task<dynamic> GetRateCategorie(int id)
         {
-            var query= await _context.Ratecategories.Where(rc => rc.Id == id).Select(rc => new
+            var query = await _context.Ratecategories.Where(rc => rc.Id == id).Select(rc => new
             {
                 lexo = rc.Lexo,
                 id = rc.Id,
@@ -123,30 +121,20 @@ namespace MobizAdmin.Controllers
         {
             await _context.Ratetargets.AddAsync(rt);
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(_context.Ratedetails.AsNoTracking().FirstOrDefault(e=>e.Id==rt.RateDetailId).CategoryId));
+            return Json(await GetRateCategorie(_context.Ratedetails.AsNoTracking().FirstOrDefault(e => e.Id == rt.RateDetailId).CategoryId));
         }
         [Authorize]
-        public async Task<JsonResult> DeleteRateTargets([FromBody] DTIds ids)
+        public async Task<JsonResult> DeleteRateTargets([FromBody] string id)
         {
-            _context.Ratedetails.Remove(_context.Ratedetails.Find(ids.RdId));
-            _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e => e.RateDetailId == ids.RdId).AsNoTracking().ToListAsync());
+            int Id = Convert.ToInt32(id);
+            _context.Ratetargets.Remove(_context.Ratetargets.Find(Id));
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(ids.RcId));
+            return Json("");
         }
         [Authorize]
         public JsonResult GetApiKey([FromBody] string id)
         {
             return Json(_context.Services.Find(id).ApiKey);
-        }
-        [Authorize]
-        public async Task<JsonResult> GetServiceLangs([FromBody] string serviceId)
-        {
-            var query = await _context.Servicelangs.Where(e => e.ServiceId == serviceId).Select(e => new
-            {
-                id=e.Id,
-                lang=e.Lang
-            }).AsNoTracking().ToListAsync();
-            return Json(query);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace MyMobiz.Models
         public int Kms { get; set; }
         public int DriveTime { get; set; }
         public int WaitTime { get; set; }
+        public int? VerNum { get; set; }
         public List<Places> Places { get; set; }
         public List<Legs> Legs { get; set; }
         public List<DTCategories> Categories { get; set; }

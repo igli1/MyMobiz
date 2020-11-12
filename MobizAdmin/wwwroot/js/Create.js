@@ -173,7 +173,7 @@ function RemoveRateCategories(val) {
         $('#Conditions').val('');
         $('#CatId').val('');
         $('#RdId').val('');
-        EmptiesDefaults();
+        EmptiesRateTargets();
         $('#nOfRateTargets').val(nOfTargets());
     }
     for (var i = 0; i < RateCategoriesSelected.length; i++) {
@@ -212,7 +212,7 @@ function RatesDetails(val) {
         $('#CatId').val(val);
         var index = GetRatesDetailsIdAndIndex(val);
         $('#RdId').val(index);
-        EmptiesDefaults();
+        EmptiesRateTargets();
         DisplayTargets(index);
     }
     else
@@ -398,7 +398,7 @@ function ServiceAndServiceRateSelected() {
     }
 }
 // Empties defaults in case Category is Removed or Category is Selected
-function EmptiesDefaults() {
+function EmptiesRateTargets() {
     $('#Defaults :input, :checkbox').each(function () {
         if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).prop('checked', false);
@@ -457,7 +457,7 @@ function Save() {
     }
 }
 //Resets the page
-function ResetInServiceSelect() {
+function ResetInServiceRateSelect() {
     RateCategoriesSelected = [];
     RateCategoriesdNotSelected = [];
     RateDetailsList = [];

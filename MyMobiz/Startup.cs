@@ -40,7 +40,15 @@ namespace MyMobiz
             services.AddTransient<DbContext, mymobiztestContext>();
             //added dbContex and connection string
             services.AddDbContext<mymobiztestContext>(options =>
-                options.UseMySql(Configuration.GetConnectionString("DbTestConnection")));
+                options.UseMySql(Configuration.GetConnectionString("DbTestConnection"),
+                mySqlOptions =>
+                {
+                    mySqlOptions
+                    .EnableRetryOnFailure(
+                    maxRetryCount: 10,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+                }));
             // Adding Background Services
             services.AddHostedService<QueueService>();
             services.AddSingleton<IBackgroundQueue, BackgroundQueue>();

@@ -22,14 +22,14 @@ function ServiceSelected(val) {
         var serviceName = $('#ServiceSelect').find(":selected").text();
         $('#ServiceId').val(val);
         $('#ServiceName').val(serviceName);
-        ResetInServiceSelect(); //Resets Page
-        GetRcRdRt(val); //Get Rc Rd Rt
+        ResetInServiceRateSelect(); //Resets Page
+        //GetRcRdRt(val); //Get Rc Rd Rt
         GetServiceRates(val);
         GetServiceLangs(val);
     }
 }
 //Resets Page If a new Service Is Selected
-function ResetInServiceSelect() {
+function ResetInServiceRateSelect() {
     SelectedRateDetail = null;
     $('#create').trigger("reset");
     $('#create').trigger("change");
@@ -45,13 +45,13 @@ function ResetInServiceSelect() {
         .empty();
     $('#RatesCategories')
         .empty();
-    EmptiesDefaults();
+    EmptiesRateTargets();
 }
-//Get Rates Categories, Rates Details and Rate Targets for Selected Service. val = ServiceId
+//Get Rates Categories, Rates Details and Rate Targets for Selected Service. val = ServiceId, VerNum
 function GetRcRdRt(val) {
     RatesCategories = [];
     RatesDetails = [];
-    AjaxCall('ServiceSelected', JSON.stringify(val), 'POST').done(function (response) {
+    AjaxCall('GetRateDetailsAndCategories', JSON.stringify(val), 'POST').done(function (response) {
         if (response.length > 0) {
             for (var i = 0; i < response.length; i++) {
                 if (response[i].ratesDetails.length > 0) {
@@ -132,14 +132,13 @@ function RateDetailSelected(val) {
     
     SelectedRateDetail = val;
     HasRateTargets();
-    EmptiesDefaults();
+    EmptiesRateTargets();
     DisplayTargets(val);
     $('#selected' + SelectedRateDetail).css('background-color', 'red'); //Changes Selected Rd button color to red
     var cat = RatesDetails.find(e => e.id == val);
     $('#Conditions').val(cat.ratesDetails[0].conditions);
     $('#CatId').val(val);
     $('#RdId').val(cat.ratesDetails[0].id);
-    $('#RdVerNum').val(cat.ratesDetails[0].vernum);
 }
 //Checks if Rate Detail has Rate Targets and Changes the selected button to blue and Counts them
 function HasRateTargets() {
@@ -148,7 +147,7 @@ function HasRateTargets() {
         if (RatesDetails[i].ratesDetails[0].rateTargets.length > 0) {
             $('#selected' + RatesDetails[i].id).css('background-color', 'blue');
             count += RatesDetails[i].ratesDetails[0].rateTargets.length;  
-        }    
+        }     
     }
     $('#nOfRateTargets').val(count);
 }
@@ -166,6 +165,8 @@ function ServiceRateSelected(val) {
         }).fail(function (error) {
             alert(error.StatusText);
         });
+        ResetInServiceRateSelect();
+        GetRcRdRt(val);
     }
 }
 //onClick Creates a Rates Details. val = CategoryId.
@@ -258,7 +259,7 @@ function DisplayTargets(val) {
     }
 }
 // Empties defaults in case Category is Removed or Category is Selected
-function EmptiesDefaults() {
+function EmptiesRateTargets() {
     $('#Defaults :input, :checkbox').each(function () {
         if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).prop('checked', false);

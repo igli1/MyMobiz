@@ -79,6 +79,15 @@ namespace MobizAdmin.Resources.Layout {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Manager.
+        /// </summary>
+        public static string Manager {
+            get {
+                return ResourceManager.GetString("Manager", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Privacy.
         /// </summary>
         public static string Privacy {

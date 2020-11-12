@@ -6,6 +6,8 @@
     <title>@ViewData["Title"] - MobizAdmin</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/amaran.min.css" />
+    <link rel="stylesheet" href="~/css/animate.min.css" />
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> <! -- Allow insecure request Http -->
 </head>
 <body>
@@ -31,6 +33,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Create" asp-action="Create">@MobizAdmin.Resources.Layout.Layout.Create</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="ServicesManager" asp-action="Manager">@MobizAdmin.Resources.Layout.Layout.Manager</a>
                         </li>
                         <li class="nav-item">
                             @await Html.PartialAsync("_CulturePartial")

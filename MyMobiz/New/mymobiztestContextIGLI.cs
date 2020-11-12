@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace MyMobiz.Models
+namespace MyMobiz.New
 {
     public partial class mymobiztestContext : DbContext
     {
@@ -19,10 +21,12 @@ namespace MyMobiz.Models
         public virtual DbSet<Lexicons> Lexicons { get; set; }
         public virtual DbSet<Orders> Orders { get; set; }
         public virtual DbSet<Places> Places { get; set; }
+        public virtual DbSet<Possibleratetargets> Possibleratetargets { get; set; }
         public virtual DbSet<Quotes> Quotes { get; set; }
         public virtual DbSet<Ratecategories> Ratecategories { get; set; }
         public virtual DbSet<Ratedetails> Ratedetails { get; set; }
         public virtual DbSet<Rategroupings> Rategroupings { get; set; }
+        public virtual DbSet<Ratepossibletargets> Ratepossibletargets { get; set; }
         public virtual DbSet<Ratetargets> Ratetargets { get; set; }
         public virtual DbSet<Ridelegs> Ridelegs { get; set; }
         public virtual DbSet<Rides> Rides { get; set; }
@@ -30,6 +34,15 @@ namespace MyMobiz.Models
         public virtual DbSet<Servicerates> Servicerates { get; set; }
         public virtual DbSet<Services> Services { get; set; }
         public virtual DbSet<Webreferers> Webreferers { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=198.38.85.103;database=mymobiztest;uid=igli;pwd=igli123", x => x.ServerVersion("5.6.48-mysql"));
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -282,6 +295,34 @@ namespace MyMobiz.Models
                     .ValueGeneratedOnAddOrUpdate();
             });
 
+            modelBuilder.Entity<Possibleratetargets>(entity =>
+            {
+                entity.HasKey(e => e.PossibleTarget)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("possibleratetargets");
+
+                entity.Property(e => e.PossibleTarget)
+                    .HasColumnType("varchar(20)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.Tsd)
+                    .HasColumnName("TSD")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Tsi)
+                    .HasColumnName("TSI")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Tsu)
+                    .HasColumnName("TSU")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .ValueGeneratedOnAddOrUpdate();
+            });
+
             modelBuilder.Entity<Quotes>(entity =>
             {
                 entity.ToTable("quotes");
@@ -360,6 +401,11 @@ namespace MyMobiz.Models
 
                 entity.Property(e => e.CategoryConditions)
                     .HasColumnType("varchar(1000)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+
+                entity.Property(e => e.ConditionsVariables)
+                    .HasColumnType("varchar(100)")
                     .HasCharSet("utf8")
                     .HasCollation("utf8_general_ci");
 
@@ -490,12 +536,29 @@ namespace MyMobiz.Models
                     .ValueGeneratedOnAddOrUpdate();
             });
 
+            modelBuilder.Entity<Ratepossibletargets>(entity =>
+            {
+                entity.HasKey(e => e.PossibleTarget)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("ratepossibletargets");
+
+                entity.Property(e => e.PossibleTarget)
+                    .HasColumnName("possibleTarget")
+                    .HasColumnType("varchar(20)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
+            });
+
             modelBuilder.Entity<Ratetargets>(entity =>
             {
                 entity.ToTable("ratetargets");
 
                 entity.HasIndex(e => e.RateDetailId)
                     .HasName("ratetargets_ibfk_1");
+
+                entity.HasIndex(e => e.RateTarget)
+                    .HasName("ratetargets_ibfk_2");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("ID")
@@ -541,6 +604,12 @@ namespace MyMobiz.Models
                     .HasForeignKey(d => d.RateDetailId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("ratetargets_ibfk_1");
+
+                entity.HasOne(d => d.RateTargetNavigation)
+                    .WithMany(p => p.Ratetargets)
+                    .HasForeignKey(d => d.RateTarget)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("ratetargets_ibfk_2");
             });
 
             modelBuilder.Entity<Ridelegs>(entity =>
@@ -616,11 +685,11 @@ namespace MyMobiz.Models
                     .HasName("rides_ibfk_1");
 
                 entity.Property(e => e.Id)
-                   .HasColumnName("ID")
-                   .HasColumnType("char(11)")
-                   .HasDefaultValueSql("''")
-                   .HasCharSet("utf8")
-                   .HasCollation("utf8_general_ci");
+                    .HasColumnName("ID")
+                    .HasColumnType("char(11)")
+                    .HasDefaultValueSql("''")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
                 entity.Property(e => e.ClientRanking)
                     .HasColumnType("varchar(11)")

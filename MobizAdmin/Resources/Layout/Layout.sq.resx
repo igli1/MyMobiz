@@ -123,6 +123,9 @@
   <data name="Home" xml:space="preserve">
     <value>Kreu</value>
   </data>
+  <data name="Manager" xml:space="preserve">
+    <value>Menaxheri</value>
+  </data>
   <data name="Privacy" xml:space="preserve">
     <value>Privatësia</value>
   </data>
