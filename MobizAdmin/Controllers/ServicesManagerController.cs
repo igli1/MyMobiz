@@ -41,13 +41,15 @@ namespace MobizAdmin.Controllers
                 verNum = e.VerNum,
                 lexo = e.Lexo,
                 locked = e.Locked,
+                nQuotes = e.NQuotes,
                 appDate = e.AppDate,
                 defDate = e.DefDate,
                 endDate = e.EndDate,
                 eurKm = e.EurKm,
                 eurMinDrive = e.EurMinDrive,
                 eurMinimum = e.EurMinimum,
-                eurMinWait = e.EurMinWait
+                eurMinWait = e.EurMinWait,
+                maxPax = e.MaxPax
             }).AsNoTracking().FirstOrDefaultAsync();
             return Json(query);
         }
@@ -59,17 +61,18 @@ namespace MobizAdmin.Controllers
             {
                 lexo = rc.Lexo,
                 id = rc.Id,
-                grouping = rc.RateGrouping,
-                ratesDetails = rc.Ratedetails.Where(rd=>rd.Vernum==VerNum).Select(rd => new
+                rateGrouping = rc.RateGrouping,
+                ratesDetails = rc.Ratedetails.Select(rd => new
                 {
                     id = rd.Id,
-                    conditions = rd.DetailConditions,
+                    vernum = rd.Vernum,
+                    detailConditions = rd.DetailConditions,
                     rateTargets = rd.Ratetargets.Select(rt => new
                     {
                         id = rt.Id,
-                        target = rt.RateTarget,
-                        figure = rt.RateFigure,
-                        op = rt.RateOperator
+                        rateTarget = rt.RateTarget,
+                        rateFigure = rt.RateFigure,
+                        rateOperator = rt.RateOperator
                     })
                 })
             }).AsNoTracking().ToListAsync();
@@ -97,20 +100,18 @@ namespace MobizAdmin.Controllers
             {
                 lexo = rc.Lexo,
                 id = rc.Id,
-                grouping = rc.RateGrouping,
+                rateGrouping = rc.RateGrouping,
                 ratesDetails = rc.Ratedetails.Select(rd => new
                 {
                     id = rd.Id,
                     vernum = rd.Vernum,
-                    conditions = rd.DetailConditions,
-                    nQuotes = rd.VernumNavigation.NQuotes,
-                    locked = rd.VernumNavigation.Locked,
+                    detailConditions = rd.DetailConditions,
                     rateTargets = rd.Ratetargets.Select(rt => new
                     {
                         id = rt.Id,
-                        target = rt.RateTarget,
-                        figure = rt.RateFigure,
-                        op = rt.RateOperator
+                        rateTarget = rt.RateTarget,
+                        rateFigure = rt.RateFigure,
+                        rateOperator = rt.RateOperator
                     })
                 })
             }).AsNoTracking().FirstOrDefaultAsync();
@@ -135,6 +136,30 @@ namespace MobizAdmin.Controllers
         public JsonResult GetApiKey([FromBody] string id)
         {
             return Json(_context.Services.Find(id).ApiKey);
+        }
+        [Authorize]
+        public JsonResult UpdateDefaults([FromBody] DTDefaults dTDefaults)
+        {
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + dTDefaults.property + " = " + dTDefaults.value + " WHERE vernum = " + dTDefaults.vernum + ";");
+            return Json("Updated");
+        }      
+        [Authorize]
+        public JsonResult UpdateRateTarget([FromBody] Ratetargets rt)
+        {
+            _context.Database.ExecuteSqlRaw("UPDATE ratetargets SET ratefigure = " + rt.RateFigure + ", rateoperator = '"+rt.RateOperator+ "' WHERE id = " + rt.Id + " ;");
+            return Json("Updated");
+        }
+        [Authorize]
+        public JsonResult UpdateDateTime([FromBody] DTDateTime dt)
+        {
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET "+dt.Property+" = '" +  dt.Value.ToString("yyyy-MM-dd") + "' WHERE vernum = " + dt.VerNum + " ;");
+            return Json("Updated");
+        }
+        [Authorize]
+        public JsonResult UpdateLocked([FromBody] DTLocked dt)
+        {
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET locked = " + dt.Locked + " WHERE vernum = " + dt.VerNum + " ;");
+            return Json("Updated");
         }
     }
 }

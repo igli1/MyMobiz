@@ -81,7 +81,7 @@ tr:hover {
 }
 
 .leftpane {
-    width: 33.33%;
+    width: 30%;
     height: auto;
     float: left;
     border-collapse: collapse;
@@ -89,7 +89,7 @@ tr:hover {
 }
 
 .middlepane {
-    width: 33.33%;
+    width: auto;
     height: auto;
     float: left;
     border-collapse: collapse;
@@ -97,14 +97,21 @@ tr:hover {
 }
 
 .rightpane {
-    width: 33.34%;
+    width: auto;
     height: auto;
     position: relative;
     float: right;
     border-collapse: collapse;
     margin-bottom: 65px;
 }
-
+.bottompane {
+    width: 100%;
+    height: auto;
+    margin-bottom: 65px;
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+}
 .toppane {
     width: 100%;
     height: auto;
@@ -126,4 +133,12 @@ label.error {
 }
 input[type="checkbox"]:checked + .imgLabel img {
     content: url('../Images/checked.png');
+}
+.imgLocked img {
+    height: 35px;
+    width: 35px;
+    content: url('../Images/unlock-icon.png');
+}
+.toppane input[type="checkbox"]:checked + .imgLocked img {
+    content: url('../Images/lock-icon.png');
 }

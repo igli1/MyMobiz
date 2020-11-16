@@ -48,58 +48,42 @@ namespace MyMobiz.Controllers
             _logger.LogInfo("Calculating the quote");
             // Getting Service for Selected ServiceId
             Services service = _cache.Get<List<Services>>("Services").FirstOrDefault(e => e.Id == dtCalculateQuote.ServiceID);
-            Quotes quote = new Quotes(_context); //Creating a new Quote
+            Quotes quote = new Quotes(); //Creating a new Quote
             quote.RefererId = _context.Webreferers.AsNoTracking().FirstOrDefault(e => e.ServiceId == dtCalculateQuote.ServiceID).Id;
             quote.ServiceId = service.Id;
-            DTCalculate calculate= CalculatePriceAsync(dtCalculateQuote, service); //calculating price
+            List<DTCategories> dtCategories = dtCalculateQuote.Categories;
+            dynamic rates;
+            if (dtCalculateQuote.Categories == null || dtCalculateQuote.Categories.Count == 0)
+            {
+                rates = service.Servicerates.FirstOrDefault(sr => sr.VerNum == dtCalculateQuote.VerNum);
+            }
+            else
+            {
+                rates = service.Servicerates.Where(sr => sr.Locked == false).Where(sr => sr.AppDate <= DateTime.Today).OrderByDescending(sr => sr.AppDate).Select(sr => new
+                {
+                    VerNum = sr.VerNum,
+                    EurKm = sr.EurKm,
+                    EurMinDrive = sr.EurMinDrive,
+                    EurMinimum = sr.EurMinimum,
+                    EurMinWait = sr.EurMinWait,
+                    Lexo = sr.Lexo,
+                    Ratedetails = sr.Ratedetails.Where(rd => service.Ratecategories.Any(rc => dtCalculateQuote.Categories.Any(dtc => (dtc.Option == null || dtc.Option == true) && dtc.Category == rc.Lexo) && rc.Id == rd.CategoryId)).Select(rd => new
+                    {
+                        Ratetargets = rd.Ratetargets.ToArray()
+                    }).ToArray()
+                }).FirstOrDefault();
+            }
+            DTCalculate calculate= CalculatePriceAsync(dtCalculateQuote, rates); //calculating price
             quote.Price = calculate.Price;
             quote.VerNum = calculate.VerNum;
             if (quote.Price == null || quote.Price == 0)
                 return BadRequest();
-            //var Id = await _context.Database.ExecuteSqlRawAsync("INSERT INTO `mymobiztest`.`quotes`(`ServiceID`,`RefererID`)VALUES('" + quote.ServiceId + "', " + quote.RefererId + ");SELECT max(id) as 'id' from quotes; ");
-
-            /*MySqlConnection myConnection = _context.Database.GetDbConnection() as MySqlConnection;
-            var mySelectQuery = "INSERT INTO `mymobiztest`.`quotes`(`ServiceID`,`RefererID`)VALUES('" + quote.ServiceId + "', " + quote.RefererId + ");SELECT max(id) as 'id' from quotes; ";
-            MySqlCommand myCommand = new MySqlCommand(mySelectQuery, myConnection);
-            myConnection.Open();
-            MySqlDataReader myReader;
-            myReader = myCommand.ExecuteReader();
-            try
-            {
-                while (myReader.Read())
-                {
-                    quote.Id = myReader.GetString(0);
-                }
-            }
-            finally
-            {
-                myReader.Close();
-                myConnection.Close();
-            }*/
             dynamic query = _context.Quotes.FromSqlRaw("INSERT INTO `mymobiztest`.`quotes`(`ID`,`ServiceID`,`RefererID`, `VerNum`)VALUES(QuotesNextId(),'" + quote.ServiceId + "', " + quote.RefererId + ", " + quote.VerNum + ");SELECT * FROM quotes WHERE quotes.ID=(SELECT MAX(id) FROM quotes)");
             quote.Id = Enumerable.FirstOrDefault<dynamic>(query).Id;
-            /*using (var command = _context.Database.GetDbConnection().CreateCommand())
+            _queue.QueueTask(async token =>   // Initiating Background Service
             {
-                command.CommandText = "INSERT INTO `mymobiztest`.`quotes`(`ServiceID`,`RefererID`)VALUES('" + quote.ServiceId + "', " + quote.RefererId + ");SELECT max(id) as 'id' from quotes; ";
-                _context.Database.OpenConnection();
-                var result = command.ExecuteReader();
-                MySqlDataReader reader= result as MySqlDataReader;
-                while (reader.Read())
-                {
-                    System.Diagnostics.Debug.WriteLine(result);
-                    quote.Id = Convert.ToString(result);
-                }
-            } */
-            //await _context.Quotes.AddAsync(quote); // Adding Quote to Context
-            //await _context.SaveChangesAsync(); // Saving Changes
-            //Check if there are no Places for MobizAdmin Simulate.
-            if (dtCalculateQuote.Places !=null && dtCalculateQuote.Places.Count >1)
-            {
-                _queue.QueueTask(async token =>   // Initiating Background Service
-                {
-                    await StoreGeoAsync(dtCalculateQuote, token, quote.Id);
-                });
-            }  
+                await StoreGeoAsync(dtCalculateQuote, token, quote.Id);
+            });
             return Ok(new DTQuote() { Id = quote.Id, Price = quote.Price });
         }
         //Background Service
@@ -134,39 +118,10 @@ namespace MyMobiz.Controllers
                 await context.Legs.AddRangeAsync(dtCalculateQuote.Legs);
                 await context.SaveChangesAsync();
                 //Inserting Rides to context
-                Rides rides = new Rides(context);
-
-
+                Rides rides = new Rides();
                 rides.QuoteId = quoteId;
                 var query = context.Rides.FromSqlRaw("INSERT INTO `mymobiztest`.`rides`(`ID`,`QuoteID`)VALUES(RidesNextId(),'" + rides.QuoteId + "');SELECT * FROM rides WHERE rides.ID=(SELECT MAX(id) FROM rides) ");
                 rides.Id = Enumerable.FirstOrDefault<dynamic>(query).Id;
-                /*MySqlConnection myConnection = _context.Database.GetDbConnection() as MySqlConnection;
-                var mySelectQuery = "INSERT INTO `mymobiztest`.`rides`(`QuoteId`)VALUES('" + rides.QuoteId + "');SELECT * FROM rides WHERE rides.ID=(SELECT MAX(id) FROM rides) ";
-                MySqlCommand myCommand = new MySqlCommand(mySelectQuery, myConnection);
-                myConnection.Open();
-                MySqlDataReader myReader;
-                myReader = myCommand.ExecuteReader();
-                try
-                {
-                    while (myReader.Read())
-                    {
-                        rides.Id = myReader.GetString(0);
-                    }
-                }
-                finally
-                {
-                    myReader.Close();
-                    myConnection.Close();
-                }*/
-
-                //rides.Id = rides.NextId(); //Generating Rides Next Id;
-                //rides.Id = "2020R000001";
-
-                //var Id = await _context.Database.ExecuteSqlRawAsync("INSERT INTO `mymobiztest`.`rides`(`QuoteId`)VALUES('" + rides.QuoteId + "');SELECT max(id) as 'id' from rides; ");
-                //rides.Id = Convert.ToString( Id);
-                //await context.Rides.AddAsync(rides); //Inserting Rides to Context
-                // Saving legs and rides to database
-
                 //Inserting RidesLegs to context
                 List<Ridelegs> ridesLegs = new List<Ridelegs>();
                 for (int i = 0; i < dtCalculateQuote.Legs.Count; i++)
@@ -182,21 +137,13 @@ namespace MyMobiz.Controllers
             }
         }
         //Calculating the Price using Service Rates, Categories and Rates Details
-        private DTCalculate CalculatePriceAsync(DTCalculateQuote dtCalculateQuote, Services service)
+        private DTCalculate CalculatePriceAsync(DTCalculateQuote dtCalculateQuote, dynamic rates)
         {
             decimal price;
             // If a service doesn't have categories only default rate
             if (dtCalculateQuote.Categories ==null || dtCalculateQuote.Categories.Count == 0)
             {
                 _logger.LogInfo("No categories selected");
-                var rates = service.Servicerates.Where(sr => sr.Locked == false).Where(sr => sr.AppDate <= DateTime.Today).OrderByDescending(sr => sr.AppDate).Select(sr => new
-                {
-                    VerNum=sr.VerNum,
-                    EurKm = sr.EurKm,
-                    EurMinDrive = sr.EurMinDrive,
-                    EurMinimum = sr.EurMinimum,
-                    EurMinWait = sr.EurMinWait
-                }).FirstOrDefault();
                 price = ((rates.EurKm * dtCalculateQuote.Kms) + (rates.EurMinDrive * dtCalculateQuote.DriveTime) +
                     (rates.EurMinWait * dtCalculateQuote.WaitTime));
                 if (price < rates.EurMinimum && rates.EurMinimum != null)
@@ -207,22 +154,6 @@ namespace MyMobiz.Controllers
             //If a service has categories and rate details
             else
             {
-                //Getting Service Rate for selected service filtering by date. 
-                //Getting Rate Details and Rate Targets for selected Rate Category.
-                var rates = service.Servicerates.Where(sr => sr.Locked == false).Where(sr => sr.AppDate <= DateTime.Today).OrderByDescending(sr => sr.AppDate).Select(sr => new
-                {
-                    VerNum = sr.VerNum,
-                    EurKm = sr.EurKm,
-                    EurMinDrive = sr.EurMinDrive,
-                    EurMinimum = sr.EurMinimum,
-                    EurMinWait = sr.EurMinWait,
-                    Lexo = sr.Lexo,
-                    Ratedetails = sr.Ratedetails.Where(rd => service.Ratecategories.Any(rc => dtCalculateQuote.Categories.Any(dtc => (dtc.Option==null || dtc.Option == true) &&  dtc.Category == rc.Lexo) && rc.Id == rd.CategoryId)).Select(rd => new
-                    {
-                        Ratetargets = rd.Ratetargets.ToArray()
-                    }).ToArray()
-                }).FirstOrDefault();
-                dtCalculateQuote.VerNum = rates.VerNum;
                 Servicerates calculatedRate = new Servicerates();
                 List<Target> totalPrice = new List<Target>();
                 //new calculation method
@@ -289,6 +220,36 @@ namespace MyMobiz.Controllers
                     price = rates.EurMinimum ?? 0;
                 return new DTCalculate() { VerNum = rates.VerNum, Price = price };
             }
+        }
+        // Accepting Post request from Route 'api/quotes/simulate'
+        // Calculating the Price
+        [HttpPost]
+        [Route("simulate")]
+        public ActionResult<DTCalculateQuote> SimulateQuote(DTCalculateQuote dtCalculateQuote)
+        {
+            Services service = _cache.Get<List<Services>>("Services").FirstOrDefault(e => e.Id == dtCalculateQuote.ServiceID);
+            dynamic rates;
+            if (dtCalculateQuote.Categories==null || dtCalculateQuote.Categories.Count == 0)
+            {
+                rates = service.Servicerates.FirstOrDefault(sr => sr.VerNum == dtCalculateQuote.VerNum);
+            }
+            else
+            {
+                rates = service.Servicerates.Where(sr => sr.VerNum == dtCalculateQuote.VerNum).Select(sr => new
+                {
+                    VerNum = sr.VerNum,
+                    EurKm = sr.EurKm,
+                    EurMinDrive = sr.EurMinDrive,
+                    EurMinimum = sr.EurMinimum,
+                    EurMinWait = sr.EurMinWait,
+                    Lexo = sr.Lexo,
+                    Ratedetails = sr.Ratedetails.Where(rd => service.Ratecategories.Any(rc => dtCalculateQuote.Categories.Any(dtc => (dtc.Option == null || dtc.Option == true) && dtc.Category == rc.Lexo) && rc.Id == rd.CategoryId)).Select(rd => new
+                    {
+                        Ratetargets = rd.Ratetargets.ToArray()
+                    }).ToArray()
+                }).FirstOrDefault();
+            } 
+            return Ok(CalculatePriceAsync(dtCalculateQuote, rates));
         }
     }
 }
