@@ -394,10 +394,9 @@ function DeleteRateTargets(val) {
 function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
         if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
-            var key = GetApiKey($('#ServiceSelect').val());
             var trip = {
                 "ServiceID": $('#ServiceSelect').val(),
-                "ServiceKey": key,
+                "VerNum": ServiceRate.verNum,
                 "DateTimePickupTh": $('#DateTimePickUp').val(),
                 "Categories": [],
                 "Passengers": parseInt($('#Pax').val()),
@@ -406,7 +405,7 @@ function SimulateTrip() {
                 "WaitTime": parseInt($('#Wait').val()),
             };
             //Rest Api Request...
-            FetchCall('https://198.38.85.103:44344/api/quotes/calculate', trip)
+            FetchCall('https://198.38.85.103:44344/api/quotes/simulate', trip)
                 .then(data => {
                       $('#Total').val(data.price);
                 });
@@ -416,16 +415,6 @@ function SimulateTrip() {
     }
     else
         alert("Please select service!");
-}
-//Gets Api Key for Selected Service. val = ServiceId
-function GetApiKey(val) {
-    var key;
-    FetchCall('GetApiKey', val)
-        .then(data => {
-            if (data != null)
-                key = data;
-        });
-    return key;
 }
 // onKeyUp Update Defaults. val = default
 function UpdateDefaults(val) {
@@ -503,6 +492,7 @@ function UpdateDateTime(val) {
             });
     }
 }
+//onChange Update Lock State for Selected Service Rate
 function UpdateLocked() {
     if ($('#locked').is(':checked'))
         ServiceRate.locked = true;
