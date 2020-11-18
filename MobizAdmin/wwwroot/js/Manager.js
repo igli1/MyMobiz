@@ -41,13 +41,9 @@ function ResetInServiceRateSelect() {
     $('#RatesCategories')
         .empty();
     EmptiesRateTargets();
-    //$('#nOfCategories').val('0');
-    $('#locked').prop('checked', false);
-    $('#nOfRateDetails').val('0');
-    $('#nOfRateTargets').val('0');
-    $('#nQuotes').val('');
-    $('#CatId').val('');
-    $('#RdId').val('');
+    $('#defDate').val('');
+    $('#appDate').val('');
+    $('#endDate').val('');
 }
 // Gets Service Rates and Fills the #ServiceRateSelect. val = ServiceId
 function GetServiceRates(val) {
@@ -55,7 +51,7 @@ function GetServiceRates(val) {
         .then(data => {
             var options = '';
             for (var i = 0; i < data.length; i++) {
-                options += '<option value="' + data[i].verNum + '">' + data[i].lexo + '</option>';
+                options += '<option value="' + data[i].verNum + '">' + data[i].verNum+' ' + data[i].lexo + '</option>';
             }
             $('#ServiceRateSelect').append(options);
         });
@@ -66,11 +62,14 @@ function ServiceRateSelected(val) {
         ResetInServiceRateSelect();
         FetchCall('GetServiceRateSelected', val)
             .then(data => {
-                if (data != null) {
+                if (data != null) {         
                     ServiceRate = data;
-                    $('#defDate').val(ServiceRate.defDate);
-                    $('#appDate').val(ServiceRate.appDate);
-                    $('#endDate').val(ServiceRate.endDate);
+                    if (ServiceRate.defDate != null)
+                        $('#defDate').val(ServiceRate.defDate.split("T")[0]);
+                    if (ServiceRate.appDate != null)
+                        $('#appDate').val(ServiceRate.appDate.split("T")[0]);
+                    if (ServiceRate.endDate !=null)
+                        $('#endDate').val(ServiceRate.endDate.split("T")[0]);
                     $('#verNum').val(ServiceRate.verNum);
                     $('#EurKmDefault').val(ServiceRate.eurKm);
                     $('#EurMinDriveDefault').val(ServiceRate.eurMinDrive);
@@ -82,37 +81,25 @@ function ServiceRateSelected(val) {
                 }
             }).then(x => {
                 GetRcRdRt(val);
-            });   
+            });
     }
 }
 // Lock Inputs if Service Rate is Locked or number of Quotes is > 0.
 function LockedOrWithQuotes() {
     AddToRatesDetailsTable(RatesDetails);
-    AddToRatesCategoriesTable(RatesCategories);   
+    AddToRatesCategoriesTable(RatesCategories);
     if (ServiceRate.nQuotes > 0) {
         EnableOrDisable(true);
-        $('.bottompane').css({
-            "border-color": "orange",
-            "border-width": "1px",
-            "border-style": "solid"
-        });
+        $('.bottompane').css("border-color", "red");
     }
-    else if (ServiceRate.locked==true) {
+    else if (ServiceRate.locked == true) {
         EnableOrDisable(true);
-        $('.bottompane').css({
-            "border-color": "red",
-            "border-width": "1px",
-            "border-style": "solid"
-        });
+        $('.bottompane').css("border-color", "orange");
         $('#locked').attr("disabled", false);
     }
     else {
         EnableOrDisable(false);
-        $('.bottompane').css({
-            "border-color": "grey",
-            "border-width": "1px",
-            "border-style": "solid"
-        });
+        $('.bottompane').css("border-color", "gray");
         $('#locked').attr("disabled", false);
     }
 }
@@ -122,6 +109,10 @@ function EnableOrDisable(val) {
     $('#appDate').attr("readonly", val);
     $('#endDate').attr("readonly", val);
     $('#Conditions').attr("readonly", val);
+    if (ServiceRate.locked == true && val == true)
+        $('#locked').attr("disabled", val);
+    else
+        $('#locked').attr("disabled", false);
     $('#Defaults').find('input, :checkbox').each(function () {
         if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).attr("disabled", val);
@@ -130,17 +121,11 @@ function EnableOrDisable(val) {
             $('#' + this.attributes.id.nodeValue).attr("readonly", val);
         }
     });
-    /*$('#Defaults :input, :checkbox').each(function () {
-        if (this.type == 'checkbox') {
-            $('#' + this.attributes.id.nodeValue).attr("disabled", val);
-        }
-        else {
-            $('#' + this.attributes.id.nodeValue).attr("readonly", val);
-        }
-    });*/
 }
 //Get Rates Categories, Rates Details and Rate Targets for Selected Service. val = VerNum.
 async function GetRcRdRt(val) {
+    RatesDetails = [];
+    RatesCategories = [];
     FetchCall('GetRateDetailsAndCategories', val)
         .then(data => {
             for (var i = 0; i < data.length; i++) {
@@ -163,16 +148,16 @@ function AddToRatesDetailsTable(data) {
     $('#RatesDetails').html('');
     var rows = "<tr> <th></th><th>" + Categorie + "</th><th>" + Grouping + "</th><th></th></tr>";
     for (var i = 0; i < data.length; i++) {
-        rows += "<tr>";
+        rows += "<tr class='tr_hover'>";
         if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
             rows += "<td></td>";
         else
-            rows += "<td><button type='button' class='tableBtn' onclick='DeleteRateDetails(this.value)' value='" + data[i].id + "'>⇓</button></td>";     
+            rows += "<td><button type='button' class='tableBtn' onclick='DeleteRateDetails(this.value)' value='" + data[i].id + "'>⇓</button></td>";
         rows += "<td>" + data[i].lexo + "</td>";
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "<td><button type='button' onclick='RateDetailSelected(this.value)' value='" + data[i].id + "' id='selected" + data[i].id + "'>⇒</button></td>";
         rows += "</tr>";
-        
+
     }
     $('#RatesDetails').append(rows);
     if (DefaultButtonColor == null) //Gets Default Button Color
@@ -189,13 +174,12 @@ function AddToRatesCategoriesTable(data) {
     var Grouping = $('#RatesCategories').attr('data-Grouping');
     $('#RatesCategories').html('');
     var rows = "<tr> <th></th><th>" + Categorie + " &nbsp;</th><th>" + Grouping + "</th><th></th></tr>";
-    //var rows = "<tr> <th></th><th>Categorie &nbsp;</th><th>Grouping</th><th></th></tr>";
     for (var i = 0; i < data.length; i++) {
-        rows += "<tr>";
+        rows += "<tr class='tr_hover'>";
         if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
             rows += "<td></td>";
         else
-            rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data[i].id + "'>⇑</button></td>";  
+            rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data[i].id + "'>⇑</button></td>";
         rows += "<td>" + data[i].lexo + "</td>";
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "</tr>";
@@ -300,23 +284,14 @@ function blockSpecialChar(event) {
 }
 // Empties Rate Targets in case Rate Detail is Removed or Other is Selected
 function EmptiesRateTargets() {
-        $('#Defaults').find('input, :checkbox').each(function () {
-            if (this.type == 'checkbox') {
-                $('#' + this.attributes.id.nodeValue).prop('checked', false);
-            }
-            else if (this.attributes.name.value != 'Default') {
-                $('#' + this.attributes.id.nodeValue).val('');
-            }
-        });
-    /*
-    $('#Defaults :input, :checkbox').each(function () {
-        if (this.type == 'checkbox' && this.attributes.id.nodeValue!='locked') {
+    $('#Defaults').find('input, :checkbox').each(function () {
+        if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).prop('checked', false);
         }
         else if (this.attributes.name.value != 'Default') {
             $('#' + this.attributes.id.nodeValue).val('');
         }
-    });*/
+    });
 }
 // Empties Defaults in case Service is Selected
 function EmptiesDefaults() {
@@ -325,11 +300,6 @@ function EmptiesDefaults() {
             $('#' + this.attributes.id.nodeValue).val('');
         }
     });
-    /*$('#Defaults :input').each(function () {
-        if (this.attributes.name.value == 'Default') {
-            $('#' + this.attributes.id.nodeValue).val('');
-        }
-    });*/
     $('#defDate').val('');
     $('#appDate').val('');
     $('#endDate').val('');
@@ -351,7 +321,7 @@ function RateTargetCheckBox(val) {
             DeleteRateTargets(val);
         }
         else {
-            
+
             $('#' + val + 'Checkbox').prop('checked', false);
         }
     }
@@ -384,8 +354,8 @@ function DeleteRateTargets(val) {
             id = RatesDetails[index].ratesDetails[0].rateTargets[i].id;
             rtIndex = i;
             break;
-        }    
-    }   
+        }
+    }
     FetchCall('DeleteRateTargets', id);
     RatesDetails[index].ratesDetails[0].rateTargets.splice(rtIndex, 1);
     $('#' + val + 'Op').val('');
@@ -407,7 +377,7 @@ function SimulateTrip() {
             //Rest Api Request...
             FetchCall('https://198.38.85.103:44344/api/quotes/simulate', trip)
                 .then(data => {
-                      $('#Total').val(data.price);
+                    $('#Total').val(data.price);
                 });
         }
         else
@@ -438,7 +408,7 @@ function UpdateDefaults(val) {
 }
 // onKeyUp Insert or Update Rate Targets. val = Rate Target
 function InsertRateTargets(val) {
-    if (ServiceRate != null ) {
+    if (ServiceRate != null) {
         if (SelectedRateDetail != null) {
             var property = val.id.slice(0, val.id.length - val.name.length);
             if ($('#' + property + 'Op').val() != '' && $('#' + property + 'Figure').val() != '') {
@@ -472,6 +442,7 @@ function InsertRateTargets(val) {
                 }
             }
         }
+        else
         alert("Please Select Rate Detail");
     }
     else {
@@ -499,7 +470,7 @@ function UpdateLocked() {
     else
         ServiceRate.locked = false;
     console.log(ServiceRate.locked);
-    var updateLocked={
+    var updateLocked = {
         vernum: ServiceRate.verNum,
         locked: ServiceRate.locked
     };
@@ -508,4 +479,64 @@ function UpdateLocked() {
             console.log(data);
         });
     LockedOrWithQuotes();
+}
+function CreateServiceModal() {
+    $.get('CreateServiceModal').done(function (data) {
+        // append HTML to document, find modal and show it
+        $('#modal-placeholder').html(data);
+        $('#modal-placeholder').find('.modal').modal('show');
+    });
+}
+function CreateService() {
+    var dataToSend = $('#ServiceModal').serialize();
+    var actionUrl = $('#ServiceModal').attr('action');
+    $.post(actionUrl, dataToSend).done(function (data) {
+        $('#modal-placeholder').find('.modal').modal('hide');
+        $('#ServiceSelect')
+            .append('<option value="' + data.id + '">' + data.serviceName + '</option>');
+    });
+}
+function CreateServiceRateModal() {
+    if ($('#ServiceSelect').val() != "") {
+        var Id = $('#ServiceId').val();
+        $.post('CreateServiceRateModal', { serviceId: Id }).done(function (data) {
+            $('#modal-placeholder').html(data);
+            $('#modal-placeholder').find('.modal').modal('show');
+        });
+    }
+}
+function CreateServiceRate() {
+    var dataToSend = $('#ServiceRateModal').serialize();
+    $.post('CreateServiceRate', dataToSend).done(function (data) {
+        $('#modal-placeholder').find('.modal').modal('hide');
+        $('#ServiceRateSelect')
+            .append('<option value="' + data.verNum + '">' + data.lexo + '</option>');
+    });
+}
+function CreateRateCategorieModal() {
+    if ($('#ServiceSelect').val() != "") {
+        var Id = $('#ServiceId').val();
+        $.post('CreateRateCategorieModal', { serviceId: Id }).done(function (data) {
+            $('#modal-placeholder').html(data);
+            $('#modal-placeholder').find('.modal').modal('show');
+        });
+    }
+}
+function CreateRateCategorie() {
+    var dataToSend = $('#RateCategorieModal').serialize();
+    $.post('CreateRateCategorie', dataToSend).done(function (data) {
+        $('#modal-placeholder').find('.modal').modal('hide');
+        if (ServiceRate != null) {
+            var rows = "<tr class='tr_hover'>";
+            if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
+                rows += "<td></td>";
+            else
+                rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data.id + "'>⇑</button></td>";
+            rows += "<td>" + data.lexo + "</td>";
+            rows += "<td>" + data.rateGrouping + "</td>";
+            rows += "</tr>";
+            $('#RatesCategories').append(rows);
+            RatesCategories.push(data);
+        }
+    });
 }

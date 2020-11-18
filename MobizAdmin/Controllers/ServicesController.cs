@@ -33,8 +33,6 @@ namespace MobizAdmin.Controllers
         [Authorize] //creates a new service
         public async Task<IActionResult> CreateServiceAsync(Services service)
         {
-            service._context = _context;
-            service.Id = service.NextId();
             await _context.Services.AddAsync(service);
             await _context.SaveChangesAsync();
             return RedirectToAction("ServicesList");

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -142,17 +144,17 @@ namespace MobizAdmin.Controllers
         {
             _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + dTDefaults.property + " = " + dTDefaults.value + " WHERE vernum = " + dTDefaults.vernum + ";");
             return Json("Updated");
-        }      
+        }
         [Authorize]
         public JsonResult UpdateRateTarget([FromBody] Ratetargets rt)
         {
-            _context.Database.ExecuteSqlRaw("UPDATE ratetargets SET ratefigure = " + rt.RateFigure + ", rateoperator = '"+rt.RateOperator+ "' WHERE id = " + rt.Id + " ;");
+            _context.Database.ExecuteSqlRaw("UPDATE ratetargets SET ratefigure = " + rt.RateFigure + ", rateoperator = '" + rt.RateOperator + "' WHERE id = " + rt.Id + " ;");
             return Json("Updated");
         }
         [Authorize]
         public JsonResult UpdateDateTime([FromBody] DTDateTime dt)
         {
-            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET "+dt.Property+" = '" +  dt.Value.ToString("yyyy-MM-dd") + "' WHERE vernum = " + dt.VerNum + " ;");
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + dt.Property + " = '" + dt.Value.ToString("yyyy-MM-dd") + "' WHERE vernum = " + dt.VerNum + " ;");
             return Json("Updated");
         }
         [Authorize]
@@ -160,6 +162,48 @@ namespace MobizAdmin.Controllers
         {
             _context.Database.ExecuteSqlRaw("UPDATE servicerates SET locked = " + dt.Locked + " WHERE vernum = " + dt.VerNum + " ;");
             return Json("Updated");
+        }
+        [Authorize]
+        public PartialViewResult CreateServiceModal()
+        {
+            return PartialView("~/Views/ServicesManager/_CreateService.cshtml");
+        }
+        [HttpPost]
+        [Authorize] //creates a new service
+        public JsonResult CreateServiceModal(Services service)
+        {
+            dynamic query = _context.Services.FromSqlRaw("INSERT INTO `mymobiztest`.`services`(`ID`,`ServiceName`,`ApiKey`)VALUES(ServicesNextId(),'" + service.ServiceName + "', '" + service.ApiKey + "');SELECT * FROM services WHERE services.ID=(SELECT MAX(id) FROM services)");
+            service.Id = Enumerable.FirstOrDefault<dynamic>(query).Id;
+            return Json(service);
+        }  
+        [Authorize]
+        public PartialViewResult CreateServiceRateModal(string serviceId)
+        {
+            ViewData["ServiceId"] = serviceId;
+            return PartialView("~/Views/ServicesManager/_CreateServiceRate.cshtml");
+        }
+        [HttpPost]
+        [Authorize] //creates a new service rate
+        public JsonResult CreateServiceRate(Servicerates sr)
+        {
+            _context.Servicerates.Add(sr);
+            _context.SaveChanges();
+            return Json(sr);
+        }
+        [Authorize]
+        public PartialViewResult CreateRateCategorieModal(string serviceId)
+        {
+            ViewData["ServiceId"] = serviceId;
+            ViewBag.RateGrouping = new SelectList(_context.Rategroupings.ToDictionary(e => e.RateGrouping, e => e.RateGrouping), "Key", "Value");
+            return PartialView("~/Views/ServicesManager/_CreateRateCategorie.cshtml");
+        }
+        [HttpPost]
+        [Authorize] //creates a new rate categorie
+        public JsonResult CreateRateCategorie(Ratecategories rc)
+        {
+            _context.Ratecategories.Add(rc);
+            _context.SaveChanges();
+            return Json(rc);
         }
     }
 }
