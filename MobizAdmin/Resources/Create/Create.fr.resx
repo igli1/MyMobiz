@@ -135,6 +135,15 @@
   <data name="Conditions" xml:space="preserve">
     <value>Conditions</value>
   </data>
+  <data name="Create_Rate_Categorie" xml:space="preserve">
+    <value>Create Rate Categorie</value>
+  </data>
+  <data name="Create_Service" xml:space="preserve">
+    <value>Create Service</value>
+  </data>
+  <data name="Create_Service_Rate" xml:space="preserve">
+    <value>Create Service Rate</value>
+  </data>
   <data name="Date_Time_Order" xml:space="preserve">
     <value>Date Time Order</value>
   </data>

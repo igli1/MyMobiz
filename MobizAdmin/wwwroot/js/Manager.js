@@ -2,7 +2,8 @@
 var RatesDetails = [];
 var SelectedRateDetail;
 var DefaultButtonColor;
-var ServiceRate;
+var ServiceRate = null;
+var TargetProperty = null;
 async function FetchCall(url, data) {
     const response = await fetch(url, {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
@@ -26,10 +27,11 @@ function ServiceSelected(val) {
         $('#ServiceName').val(serviceName);
         $('#ServiceRateSelect')
             .empty()
-            .append('<option value="">-' + $('#SelectRate').text() + '-</option>')
+            .append('<option value="">-Select Service Rate -</option>')
             ;
         ResetInServiceRateSelect(); //Resets Page
         EmptiesDefaults();
+        ServiceRate = null;
         GetServiceRates(val);
     }
 }
@@ -41,17 +43,25 @@ function ResetInServiceRateSelect() {
     $('#RatesCategories')
         .empty();
     EmptiesRateTargets();
-    $('#defDate').val('');
-    $('#appDate').val('');
-    $('#endDate').val('');
+    $('#Conditions').val('');
+    $('#defDate').val('').css("color", "black");
+    $('#appDate').val('').css("color", "black");
+    $('#endDate').val('').css("color", "black");
 }
 // Gets Service Rates and Fills the #ServiceRateSelect. val = ServiceId
 function GetServiceRates(val) {
+    /*$.post('GetServiceRates', val).done(function (data) {
+        var options = '';
+        for (var i = 0; i < data.length; i++) {
+            options += '<option value=' + data[i].verNum + '>' + data[i].verNum + ' ' + data[i].lexo + '</option>';
+        }
+        $('#ServiceRateSelect').append(options);
+    });*/
     FetchCall('GetServiceRates', val)
         .then(data => {
             var options = '';
             for (var i = 0; i < data.length; i++) {
-                options += '<option value="' + data[i].verNum + '">' + data[i].verNum+' ' + data[i].lexo + '</option>';
+                options += '<option value=' + data[i].verNum + '>' + data[i].verNum+' ' + data[i].lexo + '</option>';
             }
             $('#ServiceRateSelect').append(options);
         });
@@ -64,12 +74,25 @@ function ServiceRateSelected(val) {
             .then(data => {
                 if (data != null) {         
                     ServiceRate = data;
-                    if (ServiceRate.defDate != null)
-                        $('#defDate').val(ServiceRate.defDate.split("T")[0]);
-                    if (ServiceRate.appDate != null)
-                        $('#appDate').val(ServiceRate.appDate.split("T")[0]);
-                    if (ServiceRate.endDate !=null)
-                        $('#endDate').val(ServiceRate.endDate.split("T")[0]);
+                    if (ServiceRate.defDate != null) {
+                        var date = ServiceRate.defDate.split("T")[0];
+                        $('#defDate').val(date).css("color", CheckDate(date));
+                    }
+                    else
+                        $('#defDate').css("color", "black");
+                    if (ServiceRate.appDate != null) {
+                        var date = ServiceRate.appDate.split("T")[0];
+                        $('#appDate').val(date).css("color", CheckDate(date));
+                    }
+                    else
+                        $('#appDate').css("color", "black");
+                    if (ServiceRate.endDate != null) {
+                        var date = ServiceRate.endDate.split("T")[0];
+                        $('#endDate').val(date).css("color", CheckDate(date));
+                    }
+                    else
+                        $('#endDate').css("color", "black");
+
                     $('#verNum').val(ServiceRate.verNum);
                     $('#EurKmDefault').val(ServiceRate.eurKm);
                     $('#EurMinDriveDefault').val(ServiceRate.eurMinDrive);
@@ -83,6 +106,16 @@ function ServiceRateSelected(val) {
                 GetRcRdRt(val);
             });
     }
+}
+// Checks if date is past, future or today in order to change coors. val = date
+function CheckDate(val) {
+    var isoDate = new Date(Date.now()).toISOString().split("T")[0];;
+    if (val < isoDate)
+        return "red";
+    else if (val > isoDate)
+        return "gray";
+    else
+        return "orange";
 }
 // Lock Inputs if Service Rate is Locked or number of Quotes is > 0.
 function LockedOrWithQuotes() {
@@ -103,8 +136,12 @@ function LockedOrWithQuotes() {
         $('#locked').attr("disabled", false);
     }
 }
+// Enables or Disables Screen in case Service Rate is Locked or Has Quotes. val = boolean
 function EnableOrDisable(val) {
-    console.log(val);
+    $.amaran({
+        'message': 'Editing: '+!val,
+        'position': 'top right'
+    });
     $('#defDate').attr("readonly", val);
     $('#appDate').attr("readonly", val);
     $('#endDate').attr("readonly", val);
@@ -160,11 +197,11 @@ function AddToRatesDetailsTable(data) {
 
     }
     $('#RatesDetails').append(rows);
-    if (DefaultButtonColor == null) //Gets Default Button Color
+    if (DefaultButtonColor == null && data.length > 0) //Gets Default Button Color
         DefaultButtonColor = $('#selected' + data[0].id).css('background-color');
     HasRateTargets();
     if (SelectedRateDetail != null && data != null) {
-        $('#selected' + SelectedRateDetail).css('background-color', 'red');
+        $('#selected' + SelectedRateDetail).css('background-color', 'crimson');
     }
 }
 //Adds data to Rate Categories Table. data = RatesCategories Array
@@ -191,7 +228,7 @@ function HasRateTargets() {
     var count = 0;
     for (var i = 0; i < RatesDetails.length; i++) {
         if (RatesDetails[i].ratesDetails[0].rateTargets.length > 0) {
-            $('#selected' + RatesDetails[i].id).css('background-color', 'blue');
+            $('#selected' + RatesDetails[i].id).css('background-color', 'teal');
             count += RatesDetails[i].ratesDetails[0].rateTargets.length;
         }
     }
@@ -200,8 +237,10 @@ function HasRateTargets() {
 //onClick Deletes Rate Details from database. val= CategoryId
 function DeleteRateDetails(val) {
     var index = GetRateDetailsIndex(val)
-    var con = confirm("Removing Rate Detail with Category: '" + RatesDetails[index].lexo + "' and RateDetail id: " + RatesDetails[index].ratesDetails[0].id);
-    if (con == true) {
+    $.amaran({
+        'message': "Removing Rate Detail with Category: '" + RatesDetails[index].lexo + "' and RateDetail id: " + RatesDetails[index].ratesDetails[0].id,
+        'position': 'top right'
+    });
         var ids =
         {
             rdId: RatesDetails[index].ratesDetails[0].id,
@@ -216,20 +255,27 @@ function DeleteRateDetails(val) {
                     AddToRatesDetailsTable(RatesDetails);
                 }
             });
-    }
 }
 //onClick Creates a Rates Details. val = CategoryId.
 function CreateRatesDetails(val) {
     if (ServiceRate == null) {
-        alert('Please Select a Service Rate');
+        $.amaran({
+            'message': 'Please Select a Service Rate',
+            'position': 'top right'
+        });
     }
     else if (ServiceRate.locked == true) {
-        alert('This Service Rate is Locked');
+        $.amaran({
+            'message': 'This Service Rate is Locked',
+            'position': 'top right'
+        });
     }
     else {
         var index = GetRateCategorieIndex(val)
-        var con = confirm("Creating New Rate Detail with Category: '" + RatesCategories[index].lexo + "' and VerNum: " + ServiceRate.verNum);
-        if (con == true) {
+        $.amaran({
+            'message': "Creating New Rate Detail with Category: '" + RatesCategories[index].lexo + "' and VerNum: " + ServiceRate.verNum,
+            'position': 'top right'
+        });
             var ratesDetails = {
                 verNum: ServiceRate.verNum,
                 categoryId: RatesCategories[index].id,
@@ -245,7 +291,7 @@ function CreateRatesDetails(val) {
                         AddToRatesDetailsTable(RatesDetails);
                     }
                 });
-        }
+        
     }
 }
 //Gets Rates Details Index. val = CategoryId
@@ -273,7 +319,7 @@ function RateDetailSelected(val) {
     HasRateTargets();
     EmptiesRateTargets();
     DisplayTargets(val);
-    $('#selected' + SelectedRateDetail).css('background-color', 'red'); //Changes Selected Rd button color to red
+    $('#selected' + SelectedRateDetail).css('background-color', 'crimson'); //Changes Selected Rd button color to red
     var index = GetRateDetailsIndex(val);
     $('#Conditions').val(RatesDetails[index].ratesDetails[0].detailConditions);
 }
@@ -341,8 +387,13 @@ function CreateRateTargets(val, index) {
                 RatesDetails.push(data);
                 AddToRatesDetailsTable(RatesDetails);
                 $('#' + val + 'Checkbox').prop('checked', true);
+                TargetProperty = null;
             }
         });
+    $.amaran({
+        'message': 'Rate Target Created',
+        'position': 'top right'
+    });
 }
 //Deletes Rate Target for selected Rate Detail. val = Rate Target
 function DeleteRateTargets(val) {
@@ -360,6 +411,10 @@ function DeleteRateTargets(val) {
     RatesDetails[index].ratesDetails[0].rateTargets.splice(rtIndex, 1);
     $('#' + val + 'Op').val('');
     $('#' + val + 'Figure').val('');
+    $.amaran({
+        'message': 'Rate Target Deleted',
+        'position': 'top right'
+    });
 }
 function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
@@ -377,14 +432,22 @@ function SimulateTrip() {
             //Rest Api Request...
             FetchCall('https://198.38.85.103:44344/api/quotes/simulate', trip)
                 .then(data => {
-                    $('#Total').val(data.price);
+                    $('#Price').val(data.price);
                 });
         }
-        else
-            alert("Please fill all the data!");
+        else {
+            $.amaran({
+                'message': 'Please fill all the data!',
+                'position': 'top right'
+            });
+        }
     }
-    else
-        alert("Please select service!");
+    else {
+        $.amaran({
+            'message': "Please select service!",
+            'position': 'top right'
+        });
+    }
 }
 // onKeyUp Update Defaults. val = default
 function UpdateDefaults(val) {
@@ -398,12 +461,18 @@ function UpdateDefaults(val) {
             };
             FetchCall('UpdateDefaults', DTDefaults)
                 .then(data => {
-                    console.log(data);
+                    $.amaran({
+                        'message': data,
+                        'position': 'top right'
+                    });
                 });
         }
     }
     else {
-        alert("Please Select Service Rate");
+        $.amaran({
+            'message': "Please Select Service Rate",
+            'position': 'top right'
+        });
     }
 }
 // onKeyUp Insert or Update Rate Targets. val = Rate Target
@@ -412,10 +481,14 @@ function InsertRateTargets(val) {
         if (SelectedRateDetail != null) {
             var property = val.id.slice(0, val.id.length - val.name.length);
             if ($('#' + property + 'Op').val() != '' && $('#' + property + 'Figure').val() != '') {
+                if (TargetProperty == property) {
+                    $.delay(1000);
+                }
                 var index = GetRateDetailsIndex(SelectedRateDetail); //Rate Detail Index
                 var exists = false;
                 var rtId; // Rate Target Id
                 var rtIndex // Rate Target Index
+
                 for (var i = 0; i < RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
                     if (RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget == property) {
                         exists = true;
@@ -425,7 +498,7 @@ function InsertRateTargets(val) {
                     }
                 }
                 if (exists == false) { //Create Rate Target
-                    CreateRateTargets(property, index);
+                    CreateRateTargets(property, index);     
                 }
                 else { //Update Rate Target
                     var rateTarget = {
@@ -435,18 +508,28 @@ function InsertRateTargets(val) {
                     };
                     FetchCall('UpdateRateTarget', rateTarget)
                         .then(data => {
-                            console.log(data);
+                            $.amaran({
+                                'message': "Rate Target Updated",
+                                'position': 'top right'
+                            });
                         });
-                    RatesDetails[index].ratesDetails[0].rateTargets[rtIndex].rateFigure = $('#' + property + 'Figure').val();
-                    RatesDetails[index].ratesDetails[0].rateTargets[i].rateOperator = $('#' + property + 'Op').val();
+                    RatesDetails[index].ratesDetails[0].rateTargets.slice(rtIndex, 1);
+                    RatesDetails[index].ratesDetails[0].rateTargets.push(rateTarget);
                 }
             }
         }
-        else
-        alert("Please Select Rate Detail");
+        else {
+            $.amaran({
+                'message': "Please Select Rate Detail",
+                'position': 'top right'
+            });
+        }
     }
     else {
-        alert("Please Select Service Rate");
+        $.amaran({
+            'message': "Please Select Service Rate",
+            'position': 'top right'
+        });
     }
 }
 // onChange Update Date Time for Selected Service. val = dateTime
@@ -459,26 +542,46 @@ function UpdateDateTime(val) {
         }
         FetchCall('UpdateDateTime', updateDT)
             .then(data => {
-                console.log(data);
+                $.amaran({
+                    'message': data,
+                    'position': 'top right'
+                });
             });
+        $('#' + val.id).css("border-color", CheckDate(val.value));
+    }
+    else {
+        $.amaran({
+            'message': 'Please Select Service Rate',
+            'position': 'top right'
+        });
     }
 }
 //onChange Update Lock State for Selected Service Rate
 function UpdateLocked() {
-    if ($('#locked').is(':checked'))
-        ServiceRate.locked = true;
-    else
-        ServiceRate.locked = false;
-    console.log(ServiceRate.locked);
-    var updateLocked = {
-        vernum: ServiceRate.verNum,
-        locked: ServiceRate.locked
-    };
-    FetchCall('UpdateLocked', updateLocked)
-        .then(data => {
-            console.log(data);
+    if (ServiceRate != null) {
+        if ($('#locked').is(':checked'))
+            ServiceRate.locked = true;
+        else
+            ServiceRate.locked = false;
+        var updateLocked = {
+            vernum: ServiceRate.verNum,
+            locked: ServiceRate.locked
+        };
+        FetchCall('UpdateLocked', updateLocked)
+            .then(data => {
+                $.amaran({
+                    'message': data,
+                    'position': 'top right'
+                });
+            });
+        LockedOrWithQuotes();
+    }
+    else {
+        $.amaran({
+            'message': 'Please Select Service Rate',
+            'position': 'top right'
         });
-    LockedOrWithQuotes();
+    }
 }
 function CreateServiceModal() {
     $.get('CreateServiceModal').done(function (data) {
@@ -494,6 +597,10 @@ function CreateService() {
         $('#modal-placeholder').find('.modal').modal('hide');
         $('#ServiceSelect')
             .append('<option value="' + data.id + '">' + data.serviceName + '</option>');
+        $.amaran({
+            'message': "Service Created",
+            'position': 'top right'
+        });
     });
 }
 function CreateServiceRateModal() {
@@ -504,13 +611,23 @@ function CreateServiceRateModal() {
             $('#modal-placeholder').find('.modal').modal('show');
         });
     }
+    else {
+        $.amaran({
+            'message': "Please Select Service",
+            'position': 'top right'
+        });
+    }
 }
 function CreateServiceRate() {
     var dataToSend = $('#ServiceRateModal').serialize();
     $.post('CreateServiceRate', dataToSend).done(function (data) {
         $('#modal-placeholder').find('.modal').modal('hide');
         $('#ServiceRateSelect')
-            .append('<option value="' + data.verNum + '">' + data.lexo + '</option>');
+            .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
+        $.amaran({
+            'message': "Service Rate Created",
+            'position': 'top right'
+        });
     });
 }
 function CreateRateCategorieModal() {
@@ -519,6 +636,12 @@ function CreateRateCategorieModal() {
         $.post('CreateRateCategorieModal', { serviceId: Id }).done(function (data) {
             $('#modal-placeholder').html(data);
             $('#modal-placeholder').find('.modal').modal('show');
+        });
+    }
+    else {
+        $.amaran({
+            'message': "Please Select Service",
+            'position': 'top right'
         });
     }
 }
@@ -537,6 +660,65 @@ function CreateRateCategorie() {
             rows += "</tr>";
             $('#RatesCategories').append(rows);
             RatesCategories.push(data);
+            $.amaran({
+                'message': "Rate Categorie Created",
+                'position': 'top right'
+            });
+        }
+        else {
+            $.amaran({
+                'message': "Please Select Service Rate",
+                'position': 'top right'
+            });
         }
     });
+}
+function DuplicateVernum() {
+    if (ServiceRate != null) {
+        var Servicerate = {
+            serviceID: $('#ServiceId').val(),
+            lexo : ServiceRate.lexo,
+            locked : false,
+            appDate : ServiceRate.appDate,
+            defDate : ServiceRate.defDate,
+            endDate : ServiceRate.endDate,
+            eurKm : ServiceRate.eurKm,
+            eurMinDrive : ServiceRate.eurMinDrive,
+            eurMinimum : ServiceRate.eurMinimum,
+            eurMinWait : ServiceRate.eurMinWait,
+            maxPax : ServiceRate.maxPax,
+            ratedetails: newRateDetails()
+        }
+        FetchCall('DuplicateVerNum', Servicerate)
+            .then(data => {
+                $('#ServiceRateSelect')
+                    .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
+                $.amaran({
+                    'message': 'Service Rate Duplicated',
+                    'position': 'top right'
+                });
+                $('#ServiceRateSelect').val(data.verNum).change();
+            });     
+    }
+    else {
+        $.amaran({
+            'message': "Please Select Service Rate",
+            'position': 'top right'
+        });
+    }
+}
+function newRateDetails() {
+    var rd = [];
+    for (var i = 0; i < RatesDetails.length; i++) {
+        rd.push(RatesDetails[i].ratesDetails[0]);
+        rd[i]['categoryId'] = RatesDetails[i].id;
+    }
+    for (var i = 0; i < rd.length; i++) {
+        delete rd[i].id;
+        delete rd[i].vernum;
+        for (var j = 0; j < rd[i].rateTargets.length; j++) {
+            delete rd[i].rateTargets[j].id;
+        }
+    }
+    return rd;
 }

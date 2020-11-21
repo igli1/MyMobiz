@@ -115,6 +115,33 @@ namespace MobizAdmin.Resources.Create {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create Rate Categorie.
+        /// </summary>
+        public static string Create_Rate_Categorie {
+            get {
+                return ResourceManager.GetString("Create_Rate_Categorie", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Service.
+        /// </summary>
+        public static string Create_Service {
+            get {
+                return ResourceManager.GetString("Create_Service", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Service Rate.
+        /// </summary>
+        public static string Create_Service_Rate {
+            get {
+                return ResourceManager.GetString("Create_Service_Rate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Date Time Order.
         /// </summary>
         public static string Date_Time_Order {

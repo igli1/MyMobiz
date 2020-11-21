@@ -25,6 +25,22 @@ namespace MobizAdmin.Controllers
             return View();
         }
         [Authorize]
+        public IActionResult ManagerServiceRateSelected(int VerNum)
+        {
+            string ServiceId = _context.Servicerates.Find(VerNum).ServiceId;
+            ViewData["ServiceId"] = ServiceId;
+            ViewData["VerNum"] = VerNum;
+            ViewBag.Services = new SelectList(_context.Services.ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
+            return View("~/Views/ServicesManager/Manager.cshtml");
+        }
+        [Authorize]
+        public IActionResult ManagerServiceSelected(string ServiceId)
+        {
+            ViewData["ServiceId"] = ServiceId;
+            ViewBag.Services = new SelectList(_context.Services.ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
+            return View("~/Views/ServicesManager/Manager.cshtml");
+        }
+        [Authorize]
         public async Task<JsonResult> GetServiceRates([FromBody] string serviceId)
         {
             var query = await _context.Servicerates.Where(e => e.ServiceId == serviceId).Select(e => new
@@ -64,8 +80,9 @@ namespace MobizAdmin.Controllers
                 lexo = rc.Lexo,
                 id = rc.Id,
                 rateGrouping = rc.RateGrouping,
-                ratesDetails = rc.Ratedetails.Select(rd => new
+                ratesDetails = rc.Ratedetails.Where(rd=>rd.Vernum== VerNum).Select(rd => new
                 {
+
                     id = rd.Id,
                     vernum = rd.Vernum,
                     detailConditions = rd.DetailConditions,
@@ -86,24 +103,25 @@ namespace MobizAdmin.Controllers
         {
             await _context.Ratedetails.AddAsync(rd);
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(rd.CategoryId));
+            return Json(await GetRateCategorie(rd.CategoryId,rd.Vernum));
         }
         [Authorize]
         public async Task<JsonResult> DeleteRateDetails([FromBody] DTIds ids)
         {
-            _context.Ratedetails.Remove(_context.Ratedetails.Find(ids.RdId));
+            Ratedetails rd = _context.Ratedetails.Find(ids.RdId);
+            _context.Ratedetails.Remove(rd);
             _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e => e.RateDetailId == ids.RdId).AsNoTracking().ToListAsync());
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(ids.RcId));
+            return Json(await GetRateCategorie(ids.RcId, rd.Vernum));
         }
-        private async Task<dynamic> GetRateCategorie(int id)
+        private async Task<dynamic> GetRateCategorie(int id, int verNum)
         {
             var query = await _context.Ratecategories.Where(rc => rc.Id == id).Select(rc => new
             {
                 lexo = rc.Lexo,
                 id = rc.Id,
                 rateGrouping = rc.RateGrouping,
-                ratesDetails = rc.Ratedetails.Select(rd => new
+                ratesDetails = rc.Ratedetails.Where(rd=>rd.Vernum== verNum) .Select(rd => new
                 {
                     id = rd.Id,
                     vernum = rd.Vernum,
@@ -124,7 +142,8 @@ namespace MobizAdmin.Controllers
         {
             await _context.Ratetargets.AddAsync(rt);
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(_context.Ratedetails.AsNoTracking().FirstOrDefault(e => e.Id == rt.RateDetailId).CategoryId));
+            Ratedetails rd = _context.Ratedetails.AsNoTracking().FirstOrDefault(e => e.Id == rt.RateDetailId);
+            return Json(await GetRateCategorie(rd.CategoryId, rd.Vernum));
         }
         [Authorize]
         public async Task<JsonResult> DeleteRateTargets([FromBody] string id)
@@ -148,6 +167,7 @@ namespace MobizAdmin.Controllers
         [Authorize]
         public JsonResult UpdateRateTarget([FromBody] Ratetargets rt)
         {
+            rt.Tsu = null;
             _context.Database.ExecuteSqlRaw("UPDATE ratetargets SET ratefigure = " + rt.RateFigure + ", rateoperator = '" + rt.RateOperator + "' WHERE id = " + rt.Id + " ;");
             return Json("Updated");
         }
@@ -204,6 +224,16 @@ namespace MobizAdmin.Controllers
             _context.Ratecategories.Add(rc);
             _context.SaveChanges();
             return Json(rc);
+        }
+        [HttpPost]
+        [Authorize] //creates a new rate categorie
+        public JsonResult DuplicateVerNum([FromBody] Servicerates sr)
+        {
+            _context.Servicerates.Add(sr);
+            _context.SaveChanges();
+            dynamic query = new { verNum = sr.VerNum,
+                lexo = sr.Lexo };
+            return Json(query);
         }
     }
 }

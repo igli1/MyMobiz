@@ -111,7 +111,8 @@
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.VerNum">@MobizAdmin.Resources.Services.ServicesText.Edit</a> |
-                <a asp-action="RateDetails" asp-route-id="@item.VerNum" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">@MobizAdmin.Resources.Services.ServicesText.Details</a>
+                <a asp-action="RateDetails" asp-route-id="@item.VerNum" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">@MobizAdmin.Resources.Services.ServicesText.Details</a> |
+                <a asp-controller="ServicesManager" asp-action="ManagerServiceRateSelected" asp-route-VerNum="@item.VerNum">@MobizAdmin.Resources.Layout.Layout.Manager</a>
             </td>
         </tr>
 }

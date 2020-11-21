@@ -135,6 +135,15 @@
   <data name="Conditions" xml:space="preserve">
     <value>Kushtet</value>
   </data>
+  <data name="Create_Rate_Categorie" xml:space="preserve">
+    <value>Krijoni Normat e Kategorive</value>
+  </data>
+  <data name="Create_Service" xml:space="preserve">
+    <value>Krijoni Shërbim</value>
+  </data>
+  <data name="Create_Service_Rate" xml:space="preserve">
+    <value>Krijoni Normat e Shërbimit</value>
+  </data>
   <data name="Date_Time_Order" xml:space="preserve">
     <value>Data Ora e Porosisë</value>
   </data>
