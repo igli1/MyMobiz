@@ -29,6 +29,11 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
                 <input readonly id="ServiceName" />
             </span>
         </div>
+        <div class="form-group">
+            <label class="control-label">Select Language</label>
+            <select id="ServiceLanguageSelect"  style="width:100px;" onchange="ServiceLanguageSelected(this.value)">
+            </select>
+        </div>
         <div class="details">
             <span style="float:left;margin-right:20px;">
                 <label>@MobizAdmin.Resources.Create.Create.defDate</label>
@@ -57,7 +62,7 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
             </span>
             <span style="float:left;margin-right:20px;">
                 <label>Duplicate:</label>
-                <input type="button" onclick="DuplicateVernum()" id="DuplicateVerNum" value="Duplicate VerNum"/>
+                <input type="button" onclick="DuplicateVernum()" id="DuplicateVerNum" value="Duplicate VerNum" />
             </span>
         </div>
     </div>
@@ -78,7 +83,7 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
     </div>
     <div class="middlepane col">
         <h4>@MobizAdmin.Resources.Create.Create.Conditions</h4>
-        <textarea class="form-control" id="Conditions"></textarea>
+        <textarea class="form-control" id="Conditions" onchange="UpdateDetailConditions()"></textarea>
         <h4 class="control-label">@MobizAdmin.Resources.Create.Create.Variables</h4>
         <div id="Variables" name="Variables">
             <div>
@@ -186,7 +191,7 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
         if (ServiceId.length > 0) {
             $('#ServiceSelect').val(ServiceId).change();
         }
-        if (ServiceId.length > 0 && VerNum.length > 0) {          
+        if (ServiceId.length > 0 && VerNum.length > 0) {
             setTimeout(() => {  $('#ServiceRateSelect').val(VerNum).change(); }, 1000);
         }
     </script>

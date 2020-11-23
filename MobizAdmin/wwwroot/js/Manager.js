@@ -29,11 +29,23 @@ function ServiceSelected(val) {
             .empty()
             .append('<option value="">-Select Service Rate -</option>')
             ;
+        $('#ServiceLanguageSelect').empty();
         ResetInServiceRateSelect(); //Resets Page
         EmptiesDefaults();
         ServiceRate = null;
         GetServiceRates(val);
+        GetServiceLanguages(val);
     }
+}
+//Gets Service Languages for Selected Service. val = ServiceId.
+function GetServiceLanguages(val) {
+    $.post('GetServiceLanguages', { serviceId: val }).done(function (data) {
+        var options = '';
+        for (var i = 0; i < data.length; i++) {
+            options += '<option value=' + data[i].id + '>' + data[i].word + '</option>';
+        }
+        $('#ServiceLanguageSelect').append(options);
+    });
 }
 //Resets Page If a new Service Rate Is Selected
 function ResetInServiceRateSelect() {
@@ -50,61 +62,52 @@ function ResetInServiceRateSelect() {
 }
 // Gets Service Rates and Fills the #ServiceRateSelect. val = ServiceId
 function GetServiceRates(val) {
-    /*$.post('GetServiceRates', val).done(function (data) {
+    $.post('GetServiceRates', { serviceId: val }).done(function (data) {
         var options = '';
         for (var i = 0; i < data.length; i++) {
             options += '<option value=' + data[i].verNum + '>' + data[i].verNum + ' ' + data[i].lexo + '</option>';
         }
         $('#ServiceRateSelect').append(options);
-    });*/
-    FetchCall('GetServiceRates', val)
-        .then(data => {
-            var options = '';
-            for (var i = 0; i < data.length; i++) {
-                options += '<option value=' + data[i].verNum + '>' + data[i].verNum+' ' + data[i].lexo + '</option>';
-            }
-            $('#ServiceRateSelect').append(options);
-        });
+    });
 }
 //onChange if a Service Rate is Selected. val = VerNum
 function ServiceRateSelected(val) {
     if (val != "") {
         ResetInServiceRateSelect();
-        FetchCall('GetServiceRateSelected', val)
-            .then(data => {
-                if (data != null) {         
-                    ServiceRate = data;
-                    if (ServiceRate.defDate != null) {
-                        var date = ServiceRate.defDate.split("T")[0];
-                        $('#defDate').val(date).css("color", CheckDate(date));
-                    }
-                    else
-                        $('#defDate').css("color", "black");
-                    if (ServiceRate.appDate != null) {
-                        var date = ServiceRate.appDate.split("T")[0];
-                        $('#appDate').val(date).css("color", CheckDate(date));
-                    }
-                    else
-                        $('#appDate').css("color", "black");
-                    if (ServiceRate.endDate != null) {
-                        var date = ServiceRate.endDate.split("T")[0];
-                        $('#endDate').val(date).css("color", CheckDate(date));
-                    }
-                    else
-                        $('#endDate').css("color", "black");
-
-                    $('#verNum').val(ServiceRate.verNum);
-                    $('#EurKmDefault').val(ServiceRate.eurKm);
-                    $('#EurMinDriveDefault').val(ServiceRate.eurMinDrive);
-                    $('#EurMinWaitDefault').val(ServiceRate.eurMinWait);
-                    $('#EurMinimumDefault').val(ServiceRate.eurMinimum);
-                    $('#MaxPaxDefault').val(ServiceRate.maxPax);
-                    $('#nQuotes').val(ServiceRate.nQuotes);
-                    $('#locked').prop('checked', ServiceRate.locked);
+        $.post('GetServiceRateSelected', { vernum: val }).done(function (data) {
+            if (data != null) {
+                ServiceRate = data;
+                if (ServiceRate.defDate != null) {
+                    var date = ServiceRate.defDate.split("T")[0];
+                    $('#defDate').val(date).css("color", CheckDate(date));
                 }
-            }).then(x => {
-                GetRcRdRt(val);
-            });
+                else
+                    $('#defDate').css("color", "black");
+                if (ServiceRate.appDate != null) {
+                    var date = ServiceRate.appDate.split("T")[0];
+                    $('#appDate').val(date).css("color", CheckDate(date));
+                }
+                else
+                    $('#appDate').css("color", "black");
+                if (ServiceRate.endDate != null) {
+                    var date = ServiceRate.endDate.split("T")[0];
+                    $('#endDate').val(date).css("color", CheckDate(date));
+                }
+                else
+                    $('#endDate').css("color", "black");
+
+                $('#verNum').val(ServiceRate.verNum);
+                $('#EurKmDefault').val(ServiceRate.eurKm);
+                $('#EurMinDriveDefault').val(ServiceRate.eurMinDrive);
+                $('#EurMinWaitDefault').val(ServiceRate.eurMinWait);
+                $('#EurMinimumDefault').val(ServiceRate.eurMinimum);
+                $('#MaxPaxDefault').val(ServiceRate.maxPax);
+                $('#nQuotes').val(ServiceRate.nQuotes);
+                $('#locked').prop('checked', ServiceRate.locked);
+            }
+        }).then(x => {
+            GetRcRdRt(val);
+        });
     }
 }
 // Checks if date is past, future or today in order to change coors. val = date
@@ -163,19 +166,19 @@ function EnableOrDisable(val) {
 async function GetRcRdRt(val) {
     RatesDetails = [];
     RatesCategories = [];
-    FetchCall('GetRateDetailsAndCategories', val)
-        .then(data => {
-            for (var i = 0; i < data.length; i++) {
-                if (data[i].ratesDetails.length > 0) {
-                    RatesDetails.push(data[i]);
-                }
-                else {
-                    RatesCategories.push(data[i]);
-                }
+    var Lang = $('#ServiceLanguageSelect').find(":selected").val();
+    $.post('GetRateDetailsAndCategories', { vernum: val, langId: Lang }).done(function (data) {
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].ratesDetails.length > 0) {
+                RatesDetails.push(data[i]);
             }
-        }).then(x => {
-            LockedOrWithQuotes();
-        });
+            else {
+                RatesCategories.push(data[i]);
+            }
+        }
+    }).then(x => {
+        LockedOrWithQuotes();
+    });
 }
 //Adds data to Rates Details Table. data = RatesDetails Array
 function AddToRatesDetailsTable(data) {
@@ -190,7 +193,7 @@ function AddToRatesDetailsTable(data) {
             rows += "<td></td>";
         else
             rows += "<td><button type='button' class='tableBtn' onclick='DeleteRateDetails(this.value)' value='" + data[i].id + "'>⇓</button></td>";
-        rows += "<td>" + data[i].lexo + "</td>";
+        rows += "<td><input  class='InputNoBorder' onChange='UpdateLexo(this)' value='" + data[i].word + "' id='" + data[i].id + "'/></td>";
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "<td><button type='button' onclick='RateDetailSelected(this.value)' value='" + data[i].id + "' id='selected" + data[i].id + "'>⇒</button></td>";
         rows += "</tr>";
@@ -206,7 +209,6 @@ function AddToRatesDetailsTable(data) {
 }
 //Adds data to Rate Categories Table. data = RatesCategories Array
 function AddToRatesCategoriesTable(data) {
-    //$('#nOfCategories').val(data.length);
     var Categorie = $('#RatesCategories').attr('data-Categorie');
     var Grouping = $('#RatesCategories').attr('data-Grouping');
     $('#RatesCategories').html('');
@@ -217,7 +219,7 @@ function AddToRatesCategoriesTable(data) {
             rows += "<td></td>";
         else
             rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data[i].id + "'>⇑</button></td>";
-        rows += "<td>" + data[i].lexo + "</td>";
+        rows += "<td><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data[i].word + "' id = '" + data[i].id + "' /></td > ";
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "</tr>";
     }
@@ -241,20 +243,15 @@ function DeleteRateDetails(val) {
         'message': "Removing Rate Detail with Category: '" + RatesDetails[index].lexo + "' and RateDetail id: " + RatesDetails[index].ratesDetails[0].id,
         'position': 'top right'
     });
-        var ids =
-        {
-            rdId: RatesDetails[index].ratesDetails[0].id,
-            rcId: RatesDetails[index].id
-        };
-        FetchCall('DeleteRateDetails', ids)
-            .then(data => {
-                if (data != null) {
-                    RatesCategories.push(data);
-                    RatesDetails.splice(index, 1);
-                    AddToRatesCategoriesTable(RatesCategories);
-                    AddToRatesDetailsTable(RatesDetails);
-                }
-            });
+    var Lang = $('#ServiceLanguageSelect').find(":selected").val();
+    $.post('DeleteRateDetails', { rdId: RatesDetails[index].ratesDetails[0].id, rcId: RatesDetails[index].id, langId: Lang}).done(function (data) {
+            if (data != null) {
+                RatesCategories.push(data);
+                RatesDetails.splice(index, 1);
+                AddToRatesCategoriesTable(RatesCategories);
+                AddToRatesDetailsTable(RatesDetails);
+            }
+    });
 }
 //onClick Creates a Rates Details. val = CategoryId.
 function CreateRatesDetails(val) {
@@ -271,27 +268,27 @@ function CreateRatesDetails(val) {
         });
     }
     else {
-        var index = GetRateCategorieIndex(val)
+        var index = GetRateCategorieIndex(val);
         $.amaran({
             'message': "Creating New Rate Detail with Category: '" + RatesCategories[index].lexo + "' and VerNum: " + ServiceRate.verNum,
             'position': 'top right'
         });
-            var ratesDetails = {
-                verNum: ServiceRate.verNum,
-                categoryId: RatesCategories[index].id,
-                lexo: RatesCategories[index].lexo,
-                detailConditions: RatesCategories[index].detailConditions
+        var Lang = $('#ServiceLanguageSelect').find(":selected").val();
+        var ratesDetails = {
+            verNum: ServiceRate.verNum,
+            categoryId: RatesCategories[index].id,
+            lexo: RatesCategories[index].lexo,
+            detailConditions: RatesCategories[index].detailConditions
+        };
+        $.post('CreateRateDetails', { ratesDetails: ratesDetails, langId: Lang} ).done(function (data) {
+            if (data != null) {
+                RatesDetails.push(data);
+                RatesCategories.splice(index, 1);
             }
-            FetchCall('CreateRateDetails', ratesDetails)
-                .then(data => {
-                    if (data != null) {
-                        RatesDetails.push(data);
-                        RatesCategories.splice(index, 1);
-                        AddToRatesCategoriesTable(RatesCategories);
-                        AddToRatesDetailsTable(RatesDetails);
-                    }
-                });
-        
+        }).then(x => {
+            AddToRatesCategoriesTable(RatesCategories);
+            AddToRatesDetailsTable(RatesDetails);
+        });
     }
 }
 //Gets Rates Details Index. val = CategoryId
@@ -314,7 +311,7 @@ function GetRateCategorieIndex(val) {
 function RateDetailSelected(val) {
     if (SelectedRateDetail != null) //Changes Button Color to Default
         $('#selected' + SelectedRateDetail).css('background-color', DefaultButtonColor);
-
+ 
     SelectedRateDetail = val;
     HasRateTargets();
     EmptiesRateTargets();
@@ -374,66 +371,74 @@ function RateTargetCheckBox(val) {
 }
 //Creates Rate Target for selected Rate Detail. val = Rate Target, index Rate Detail index
 function CreateRateTargets(val, index) {
-    var rateTarget = {
+    var rt = {
         RateDetailId: RatesDetails[index].ratesDetails[0].id,
         RateTarget: val,
         RateFigure: $('#' + val + 'Figure').val(),
         RateOperator: $('#' + val + 'Op').val()
     };
-    FetchCall('CreateRateTarget', rateTarget)
-        .then(data => {
-            if (data != null) {
-                RatesDetails.splice(index, 1);
-                RatesDetails.push(data);
-                AddToRatesDetailsTable(RatesDetails);
-                $('#' + val + 'Checkbox').prop('checked', true);
-                TargetProperty = null;
-            }
+    $.post('CreateRateTarget', rt).done(function (data) {
+        if (data != null) {
+            RatesDetails[index].ratesDetails[0].rateTargets.push(data);
+            $('#' + val + 'Checkbox').prop('checked', true);
+        }
+    }).then(x => {
+        $.amaran({
+            'message': val + ' Rate Target Created',
+            'position': 'top right'
         });
-    $.amaran({
-        'message': 'Rate Target Created',
-        'position': 'top right'
     });
+}
+//Gets the Rate Target Index. rdIndex = RateDetail Index, val = Rate Target
+function RateTargetIndex(rdIndex, val) {
+    for (var i = 0; i < RatesDetails[rdIndex].ratesDetails[0].rateTargets.length; i++) {
+        if (RatesDetails[rdIndex].ratesDetails[0].rateTargets[i].rateTarget == val) {
+            return i;
+        }
+    }
 }
 //Deletes Rate Target for selected Rate Detail. val = Rate Target
 function DeleteRateTargets(val) {
     var index = GetRateDetailsIndex(SelectedRateDetail);
-    var id;
-    var rtIndex;
-    for (var i = 0; i < RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
-        if (RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget == val) {
-            id = RatesDetails[index].ratesDetails[0].rateTargets[i].id;
-            rtIndex = i;
-            break;
-        }
-    }
-    FetchCall('DeleteRateTargets', id);
+    var rtIndex = RateTargetIndex(index, val);
+    var id = RatesDetails[index].ratesDetails[0].rateTargets[rtIndex].id;
+    $.post('DeleteRateTargets', { id: id }).done(function (data) {
+        $.amaran({
+            'message': data,
+            'position': 'top right'
+        });
+    });
     RatesDetails[index].ratesDetails[0].rateTargets.splice(rtIndex, 1);
     $('#' + val + 'Op').val('');
     $('#' + val + 'Figure').val('');
-    $.amaran({
-        'message': 'Rate Target Deleted',
-        'position': 'top right'
-    });
 }
 function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
         if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
-            var trip = {
-                "ServiceID": $('#ServiceSelect').val(),
-                "VerNum": ServiceRate.verNum,
-                "DateTimePickupTh": $('#DateTimePickUp').val(),
-                "Categories": [],
-                "Passengers": parseInt($('#Pax').val()),
-                "Kms": parseInt($('#Kms').val()),
-                "DriveTime": parseInt($('#Drive').val()),
-                "WaitTime": parseInt($('#Wait').val()),
+            var dtCalculateQuote = {
+                ServiceID: $('#ServiceSelect').val(),
+                VerNum: parseInt(ServiceRate.verNum),
+                DateTimePickupTh: $('#DateTimePickUp').val(),
+                //Categories: [],
+                Passengers: parseInt($('#Pax').val()),
+                Kms: parseInt($('#Kms').val()),
+                DriveTime: parseInt($('#Drive').val()),
+                WaitTime: parseInt($('#Wait').val()),
             };
             //Rest Api Request...
-            FetchCall('https://198.38.85.103:44344/api/quotes/simulate', trip)
+            FetchCall('https://198.38.85.103:44344/api/quotes/simulate', dtCalculateQuote)
                 .then(data => {
                     $('#Price').val(data.price);
                 });
+            $.ajaxSetup({
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            $.post('https://198.38.85.103:44344/api/quotes/simulate', dtCalculateQuote).done(function (data) {
+                ('#Price').val(data.price);
+            });
         }
         else {
             $.amaran({
@@ -454,18 +459,12 @@ function UpdateDefaults(val) {
     if (ServiceRate != null) {
         if (val.value.length != 0) {
             var property = val.id.slice(0, val.id.length - 7);
-            var DTDefaults = {
-                vernum: ServiceRate.verNum,
-                property: property,
-                value: parseFloat(val.value)
-            };
-            FetchCall('UpdateDefaults', DTDefaults)
-                .then(data => {
-                    $.amaran({
-                        'message': data,
-                        'position': 'top right'
-                    });
+            $.post('UpdateDefaults', {vernum: ServiceRate.verNum, property: property, value: parseFloat(val.value) }).done(function (data) {
+                $.amaran({
+                    'message': data,
+                    'position': 'top right'
                 });
+            });
         }
     }
     else {
@@ -501,20 +500,21 @@ function InsertRateTargets(val) {
                     CreateRateTargets(property, index);     
                 }
                 else { //Update Rate Target
-                    var rateTarget = {
+                    var rt = {
                         id: rtId,
+                        rateTarget: property,
                         RateFigure: $('#' + property + 'Figure').val(),
                         RateOperator: $('#' + property + 'Op').val()
                     };
-                    FetchCall('UpdateRateTarget', rateTarget)
-                        .then(data => {
-                            $.amaran({
-                                'message': "Rate Target Updated",
-                                'position': 'top right'
-                            });
+                    $.post('UpdateRateTarget', rt).done(function (data) {
+                        RatesDetails[index].ratesDetails[0].rateTargets.slice(rtIndex, 1);
+                        RatesDetails[index].ratesDetails[0].rateTargets.push(data);
+                    }).then(x => {
+                        $.amaran({
+                            'message': property + ' Updated',
+                            'position': 'top right'
                         });
-                    RatesDetails[index].ratesDetails[0].rateTargets.slice(rtIndex, 1);
-                    RatesDetails[index].ratesDetails[0].rateTargets.push(rateTarget);
+                    });
                 }
             }
         }
@@ -540,14 +540,14 @@ function UpdateDateTime(val) {
             property: val.id,
             vernum: ServiceRate.verNum
         }
-        FetchCall('UpdateDateTime', updateDT)
-            .then(data => {
-                $.amaran({
-                    'message': data,
-                    'position': 'top right'
-                });
+        $.post('UpdateDateTime', { value: val.value, property: val.id, vernum: ServiceRate.verNum }).done(function (data) {
+            $.amaran({
+                'message': data,
+                'position': 'top right'
             });
-        $('#' + val.id).css("border-color", CheckDate(val.value));
+        }).then(x => {
+            $('#' + val.id).css("color", CheckDate(val.value));
+        });
     }
     else {
         $.amaran({
@@ -567,14 +567,14 @@ function UpdateLocked() {
             vernum: ServiceRate.verNum,
             locked: ServiceRate.locked
         };
-        FetchCall('UpdateLocked', updateLocked)
-            .then(data => {
-                $.amaran({
-                    'message': data,
-                    'position': 'top right'
-                });
+        $.post('UpdateLocked', { vernum: ServiceRate.verNum, locked: ServiceRate.locked }).done(function (data) {
+            $.amaran({
+                'message': data,
+                'position': 'top right'
             });
-        LockedOrWithQuotes();
+        }).then(x => {
+            LockedOrWithQuotes();
+        }); 
     }
     else {
         $.amaran({
@@ -655,7 +655,7 @@ function CreateRateCategorie() {
                 rows += "<td></td>";
             else
                 rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data.id + "'>⇑</button></td>";
-            rows += "<td>" + data.lexo + "</td>";
+            rows += "<td><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data.lexo + "' id = '" + data.id + "' /></td > ";
             rows += "<td>" + data.rateGrouping + "</td>";
             rows += "</tr>";
             $('#RatesCategories').append(rows);
@@ -675,7 +675,7 @@ function CreateRateCategorie() {
 }
 function DuplicateVernum() {
     if (ServiceRate != null) {
-        var Servicerate = {
+        var servicerate = {
             serviceID: $('#ServiceId').val(),
             lexo : ServiceRate.lexo,
             locked : false,
@@ -689,16 +689,16 @@ function DuplicateVernum() {
             maxPax : ServiceRate.maxPax,
             ratedetails: newRateDetails()
         }
-        FetchCall('DuplicateVerNum', Servicerate)
-            .then(data => {
-                $('#ServiceRateSelect')
-                    .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
-                $.amaran({
-                    'message': 'Service Rate Duplicated',
-                    'position': 'top right'
-                });
-                $('#ServiceRateSelect').val(data.verNum).change();
-            });     
+        $.post('DuplicateVerNum', servicerate).done(function (data) {
+            $('#ServiceRateSelect')
+                .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
+            $.amaran({
+                'message': 'Service Rate Duplicated',
+                'position': 'top right'
+            });
+        }).then(x => {
+            $('#ServiceRateSelect').val(x.verNum).change();
+        });   
     }
     else {
         $.amaran({
@@ -721,4 +721,49 @@ function newRateDetails() {
         }
     }
     return rd;
+}
+function UpdateDetailConditions() {
+    if (ServiceRate != null) {
+        if (SelectedRateDetail != null) {
+            var index = GetRateDetailsIndex(SelectedRateDetail); //Rate Detail Index
+            $.post('UpdateDetailConditions', { condition: $('#Conditions').val(), id: RatesDetails[index].ratesDetails[0].id}).done(function (data) {
+                RatesDetails[index].ratesDetails[0].detailConditions = $('#Conditions').val();
+            }).then(x => {
+                $.amaran({
+                    'message': x,
+                    'position': 'top right'
+                });
+            });
+        }
+        else {
+            $.amaran({
+                'message': "Please Select Rate Detail",
+                'position': 'top right'
+            });
+        }
+    }
+    else {
+        $.amaran({
+            'message': "Please Select Service Rate",
+            'position': 'top right'
+        });
+    }
+}
+function ServiceLanguageSelected(val) {
+    if (val != '' && ServiceRate != null) {
+        $('#RatesDetails')
+            .empty();
+        $('#RatesCategories')
+            .empty();
+        GetRcRdRt(ServiceRate.verNum);
+    }
+}
+function UpdateLexo(val) {
+    var Lang = $('#ServiceLanguageSelect').find(":selected").val();
+    $.post('InsertWord', { id: val.id, value: val.value, langId: Lang }).done(function (data) {
+        $.amaran({
+            'message': data,
+            'position': 'top right'
+        });
+    });
 }

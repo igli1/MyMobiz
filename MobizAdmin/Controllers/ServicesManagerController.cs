@@ -1,7 +1,5 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +39,7 @@ namespace MobizAdmin.Controllers
             return View("~/Views/ServicesManager/Manager.cshtml");
         }
         [Authorize]
-        public async Task<JsonResult> GetServiceRates([FromBody] string serviceId)
+        public async Task<JsonResult> GetServiceRates(string serviceId)
         {
             var query = await _context.Servicerates.Where(e => e.ServiceId == serviceId).Select(e => new
             {
@@ -51,10 +49,10 @@ namespace MobizAdmin.Controllers
             return Json(query);
         }
         [Authorize]
-        public async Task<JsonResult> GetServiceRateSelected([FromBody] string vernum)
+        public async Task<JsonResult> GetServiceRateSelected(int vernum)
         {
-            int VerNum = Convert.ToInt32(vernum);
-            var query = await _context.Servicerates.Where(e => e.VerNum == VerNum).Select(e => new
+            //int VerNum = Convert.ToInt32(vernum);
+            var query = await _context.Servicerates.Where(e => e.VerNum == vernum).Select(e => new
             {
                 verNum = e.VerNum,
                 lexo = e.Lexo,
@@ -72,15 +70,14 @@ namespace MobizAdmin.Controllers
             return Json(query);
         }
         [Authorize]
-        public async Task<JsonResult> GetRateDetailsAndCategories([FromBody] string vernum)
+        public async Task<JsonResult> GetRateDetailsAndCategories(int vernum, int langId)
         {
-            int VerNum = Convert.ToInt32(vernum);
-            var query = await _context.Ratecategories.Where(rc => _context.Servicerates.Any(sr => sr.VerNum == VerNum && rc.ServiceId == sr.ServiceId)).Select(rc => new
+            var query = await _context.Ratecategories.Where(rc => _context.Servicerates.Any(sr => sr.VerNum == vernum && rc.ServiceId == sr.ServiceId)).Select(rc => new
             {
-                lexo = rc.Lexo,
+                word =  _context.Lexicons.Where(lc=> _context.Servicelangs.Any(sl=>sl.Id== langId && lc.Lang==sl.Lang)&& lc.Lexo==rc.Lexo && lc.ServiceId==rc.ServiceId).FirstOrDefault().Word ?? rc.Lexo,
                 id = rc.Id,
                 rateGrouping = rc.RateGrouping,
-                ratesDetails = rc.Ratedetails.Where(rd=>rd.Vernum== VerNum).Select(rd => new
+                ratesDetails = rc.Ratedetails.Where(rd => rd.Vernum == vernum).Select(rd => new
                 {
 
                     id = rd.Id,
@@ -95,30 +92,51 @@ namespace MobizAdmin.Controllers
                     })
                 })
             }).AsNoTracking().ToListAsync();
+            /*var query = await _context.Ratecategories.Where(rc => _context.Servicerates.Any(sr => sr.VerNum == vernum && rc.ServiceId == sr.ServiceId)).Select(rc => new
+            {
+                lexo = rc.Service.Servicelangs.FirstOrDefault(sl => sl.Id == langId).LangNavigation.Lexicons.FirstOrDefault(lx => lx.Lexo == rc.Lexo).Word == null ? null :
+                "hello",
+                id = rc.Id,
+                rateGrouping = rc.RateGrouping,
+                ratesDetails = rc.Ratedetails.Where(rd => rd.Vernum == vernum).Select(rd => new
+                {
+
+                    id = rd.Id,
+                    vernum = rd.Vernum,
+                    detailConditions = rd.DetailConditions,
+                    rateTargets = rd.Ratetargets.Select(rt => new
+                    {
+                        id = rt.Id,
+                        rateTarget = rt.RateTarget,
+                        rateFigure = rt.RateFigure,
+                        rateOperator = rt.RateOperator
+                    })
+                })
+            }).AsNoTracking().ToListAsync();*/
             return Json(query);
         }
         [HttpPost]
         [Authorize]
-        public async Task<JsonResult> CreateRateDetails([FromBody] Ratedetails rd)
+        public async Task<JsonResult> CreateRateDetails(Ratedetails ratesDetails, int langId)
         {
-            await _context.Ratedetails.AddAsync(rd);
+            await _context.Ratedetails.AddAsync(ratesDetails);
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(rd.CategoryId,rd.Vernum));
+            return Json(await GetRateCategorie(ratesDetails.CategoryId, ratesDetails.Vernum, langId));
         }
         [Authorize]
-        public async Task<JsonResult> DeleteRateDetails([FromBody] DTIds ids)
+        public async Task<JsonResult> DeleteRateDetails(int rdId, int rcId, int langId)
         {
-            Ratedetails rd = _context.Ratedetails.Find(ids.RdId);
+            Ratedetails rd = _context.Ratedetails.Find(rdId);
             _context.Ratedetails.Remove(rd);
-            _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e => e.RateDetailId == ids.RdId).AsNoTracking().ToListAsync());
+            _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e => e.RateDetailId == rdId).AsNoTracking().ToListAsync());
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(ids.RcId, rd.Vernum));
+            return Json(await GetRateCategorie(rcId, rd.Vernum, langId));
         }
-        private async Task<dynamic> GetRateCategorie(int id, int verNum)
+        private async Task<dynamic> GetRateCategorie(int id, int verNum, int langId)
         {
             var query = await _context.Ratecategories.Where(rc => rc.Id == id).Select(rc => new
             {
-                lexo = rc.Lexo,
+                word = _context.Lexicons.Where(lc => _context.Servicelangs.Any(sl => sl.Id == langId && lc.Lang == sl.Lang) && lc.Lexo == rc.Lexo).FirstOrDefault().Word ?? rc.Lexo,
                 id = rc.Id,
                 rateGrouping = rc.RateGrouping,
                 ratesDetails = rc.Ratedetails.Where(rd=>rd.Vernum== verNum) .Select(rd => new
@@ -138,50 +156,48 @@ namespace MobizAdmin.Controllers
             return query;
         }
         [Authorize]
-        public async Task<JsonResult> CreateRateTarget([FromBody] Ratetargets rt)
+        public async Task<JsonResult> CreateRateTarget(Ratetargets rt)
         {
             await _context.Ratetargets.AddAsync(rt);
+            await _context.SaveChangesAsync();  
+            return Json(rt);
+        }
+        [Authorize]
+        public async Task<JsonResult> DeleteRateTargets(int id)
+        {
+            //int Id = Convert.ToInt32(id);
+            _context.Ratetargets.Remove(_context.Ratetargets.Find(id));
             await _context.SaveChangesAsync();
-            Ratedetails rd = _context.Ratedetails.AsNoTracking().FirstOrDefault(e => e.Id == rt.RateDetailId);
-            return Json(await GetRateCategorie(rd.CategoryId, rd.Vernum));
+            return Json("Rate Target Deleted");
         }
         [Authorize]
-        public async Task<JsonResult> DeleteRateTargets([FromBody] string id)
+        public JsonResult UpdateDefaults(int vernum, string property, decimal value)
         {
-            int Id = Convert.ToInt32(id);
-            _context.Ratetargets.Remove(_context.Ratetargets.Find(Id));
-            await _context.SaveChangesAsync();
-            return Json("");
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + property + " = " + value + " WHERE vernum = " + vernum + ";");
+            return Json(property+" Updated");
         }
         [Authorize]
-        public JsonResult GetApiKey([FromBody] string id)
+        public JsonResult UpdateRateTarget(Ratetargets rt)
         {
-            return Json(_context.Services.Find(id).ApiKey);
+            _context.Attach(rt);
+            _context.Entry(rt).Property(p => p.RateOperator).IsModified = true;
+            _context.Entry(rt).Property(p => p.RateFigure).IsModified = true;
+            _context.SaveChanges();
+            //rt.Tsu = null;
+            //_context.Database.ExecuteSqlRaw("UPDATE ratetargets SET ratefigure = " + rt.RateFigure + ", rateoperator = '" + rt.RateOperator + "' WHERE id = " + rt.Id + " ;");
+            return Json(rt);
         }
         [Authorize]
-        public JsonResult UpdateDefaults([FromBody] DTDefaults dTDefaults)
+        public JsonResult UpdateDateTime(DateTime value, string property, int vernum)
         {
-            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + dTDefaults.property + " = " + dTDefaults.value + " WHERE vernum = " + dTDefaults.vernum + ";");
-            return Json("Updated");
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + property + " = '" + value.ToString("yyyy-MM-dd") + "' WHERE vernum = " + vernum + " ;");
+            return Json(property + " Updated");
         }
         [Authorize]
-        public JsonResult UpdateRateTarget([FromBody] Ratetargets rt)
+        public JsonResult UpdateLocked(int vernum, bool locked)
         {
-            rt.Tsu = null;
-            _context.Database.ExecuteSqlRaw("UPDATE ratetargets SET ratefigure = " + rt.RateFigure + ", rateoperator = '" + rt.RateOperator + "' WHERE id = " + rt.Id + " ;");
-            return Json("Updated");
-        }
-        [Authorize]
-        public JsonResult UpdateDateTime([FromBody] DTDateTime dt)
-        {
-            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET " + dt.Property + " = '" + dt.Value.ToString("yyyy-MM-dd") + "' WHERE vernum = " + dt.VerNum + " ;");
-            return Json("Updated");
-        }
-        [Authorize]
-        public JsonResult UpdateLocked([FromBody] DTLocked dt)
-        {
-            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET locked = " + dt.Locked + " WHERE vernum = " + dt.VerNum + " ;");
-            return Json("Updated");
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET locked = " + locked + " WHERE vernum = " + vernum + " ;");
+            return Json("Locked Updated");
         }
         [Authorize]
         public PartialViewResult CreateServiceModal()
@@ -226,14 +242,62 @@ namespace MobizAdmin.Controllers
             return Json(rc);
         }
         [HttpPost]
-        [Authorize] //creates a new rate categorie
-        public JsonResult DuplicateVerNum([FromBody] Servicerates sr)
+        [Authorize] //Duplicates VerNum with all the Rates Details and Rates Targets
+        public JsonResult DuplicateVerNum(Servicerates servicerates)
         {
-            _context.Servicerates.Add(sr);
+            _context.Servicerates.Add(servicerates);
             _context.SaveChanges();
-            dynamic query = new { verNum = sr.VerNum,
-                lexo = sr.Lexo };
+            dynamic query = new { verNum = servicerates.VerNum,
+                lexo = servicerates.Lexo };
             return Json(query);
+        }
+        [HttpPost]
+        [Authorize] //Updates Detail Conditions
+        public JsonResult UpdateDetailConditions(string  condition, int id)
+        {
+            _context.Database.ExecuteSqlRaw("UPDATE ratedetails SET detailconditions = '" +condition+ "' where id = " +id);
+            return Json("Detail Conditions Updated");
+        }
+        [Authorize]
+        public async Task<JsonResult> GetServiceLanguages(string serviceId)
+        {
+            var query = await _context.Servicelangs.Where(e => e.ServiceId == serviceId).Select(e => new
+            {
+                id = e.Id,
+                word = e.LangNavigation.Word
+            }).AsNoTracking().ToListAsync();
+            return Json(query);
+        }
+        [Authorize]
+        public async Task<JsonResult> InsertWord(int id,string value,  int langId)
+        {
+            Lexicons lexicons = new Lexicons();
+            if(await _context.Lexicons.AnyAsync(lc=>  _context.Ratecategories.Any(rc=>rc.Id==id && lc.ServiceId== rc.ServiceId && lc.Lexo==rc.Lexo) && _context.Servicelangs.Any(sl=>sl.Id==langId && lc.Lang == sl.Lang)))
+            {
+                lexicons= await _context.Lexicons.FirstOrDefaultAsync(lc => _context.Ratecategories.Any(rc => rc.Id == id && lc.ServiceId == rc.ServiceId && lc.Lexo==rc.Lexo) && _context.Servicelangs.Any(sl => sl.Id == langId && lc.Lang == sl.Lang));
+                lexicons.Word = value;
+                _context.Attach(lexicons);
+                _context.Entry(lexicons).Property(p => p.Word).IsModified = true;
+                await _context.SaveChangesAsync();
+                return Json("Category: " + id + " Word Updated");
+            }
+            else
+            {
+                var query = await _context.Ratecategories.Where(rc => rc.Id==id).Select(rc => new
+                { 
+                    lexo = rc.Lexo,
+                    serviceId = rc.Service.Id,
+                    lang = _context.Servicelangs.FirstOrDefault(sl=>sl.Id==langId).Lang
+                    
+                }).AsNoTracking().FirstOrDefaultAsync();
+                lexicons.Lang = query.lang;
+                lexicons.Lexo = query.lexo;
+                lexicons.ServiceId = query.serviceId;
+                lexicons.Word = value;
+                await _context.AddAsync(lexicons);
+                await _context.SaveChangesAsync();
+                return Json("Category: " + id + " Word Inserted");
+            } 
         }
     }
 }
