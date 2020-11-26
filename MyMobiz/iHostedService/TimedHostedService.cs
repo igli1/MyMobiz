@@ -45,14 +45,14 @@ namespace MyMobiz.iHostedService
                 if(_cache.Get("Services")!=null)
                 _cache.Remove("Services");
                 //Gets all Services with their respective WebReferers, RateCategories, Servicerates, RatesDetails and Rate Targets.
-                var services = _context.Services.Select(s => new
+                var services = _context.Services.Where(sv => sv.Tsd > DateTime.Now || sv.Tsd == null).Select(s => new
                 {
                     Id = s.Id,
                     ApiKey = s.ApiKey,
                     ServiceName = s.ServiceName,
                     Webreferers = s.Webreferers,
                     Ratecategories = s.Ratecategories,
-                    Servicerates = s.Servicerates.Where(sr=>sr.Locked==false).Select(sr=>new
+                    Servicerates = s.Servicerates.Where(sr=>sr.Locked==false && (sr.Tsd > DateTime.Now || sr.Tsd == null)).Select(sr=>new
                     {
                         VerNum=sr.VerNum,
                         EurKm=sr.EurKm,
@@ -62,11 +62,11 @@ namespace MyMobiz.iHostedService
                         Lexo=sr.Lexo,
                         NQuotes=sr.NQuotes,
                         MaxPax=sr.MaxPax,
-                        Ratedetails = sr.Ratedetails.Select(rd=>new
+                        Ratedetails = sr.Ratedetails.Where(rd => rd.Tsd > DateTime.Now || rd.Tsd == null).Select(rd=>new
                         {
                             Id=rd.Id,
                             CategoryId=rd.CategoryId,
-                            Ratetargets = rd.Ratetargets
+                            Ratetargets = rd.Ratetargets.Where(rt => rt.Tsd > DateTime.Now || rt.Tsd == null)
                         })
                     }),
                 }).ToList();

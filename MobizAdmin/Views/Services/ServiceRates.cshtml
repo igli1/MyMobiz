@@ -49,21 +49,12 @@
             <th>
                 @MobizAdmin.Resources.Services.ServicesText.NQuotes
             </th>
-            <th>
-                @MobizAdmin.Resources.Services.ServicesText.Tsi
-            </th>
-            <th>
-                @MobizAdmin.Resources.Services.ServicesText.Tsu
-            </th>
-            <th>
-                @MobizAdmin.Resources.Services.ServicesText.Tsd
-            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
+        <tr style="background-color: @(item.Tsd <= DateTime.Now ? "#F44336": "");">
             <td>
                 @Html.DisplayFor(modelItem => item.VerNum)
             </td>
@@ -101,16 +92,14 @@
                 @Html.DisplayFor(modelItem => item.NQuotes)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Tsi)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tsu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tsd)
-            </td>
-            <td>
-                <a asp-controller="ServicesManager" asp-action="ManagerServiceRateSelected" asp-route-VerNum="@item.VerNum">@MobizAdmin.Resources.Layout.Layout.Manager</a>
+                @if (item.Tsd <= DateTime.Now)
+                {
+                    <b>Expired</b>}
+                else
+                {
+                    <a asp-controller="ServicesManager" asp-action="ManagerServiceRateSelected" asp-route-VerNum="@item.VerNum">@MobizAdmin.Resources.Layout.Layout.Manager</a>
+                    <a asp-action="DeleteServiceRate" asp-route-VerNum="@item.VerNum" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Delete</a>
+                 }
             </td>
         </tr>
 }

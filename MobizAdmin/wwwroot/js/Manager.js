@@ -178,6 +178,7 @@ async function GetRcRdRt(val) {
         }
     }).then(x => {
         LockedOrWithQuotes();
+        Variables();
     });
 }
 //Adds data to Rates Details Table. data = RatesDetails Array
@@ -193,7 +194,10 @@ function AddToRatesDetailsTable(data) {
             rows += "<td></td>";
         else
             rows += "<td><button type='button' class='tableBtn' onclick='DeleteRateDetails(this.value)' value='" + data[i].id + "'>⇓</button></td>";
-        rows += "<td><input  class='InputNoBorder' onChange='UpdateLexo(this)' value='" + data[i].word + "' id='" + data[i].id + "'/></td>";
+        if ($('#ServiceLanguageSelect').find(":selected").val()!=-1 )
+            rows += "<td><input  class='InputNoBorder' onChange='UpdateLexo(this)' value='" + data[i].word + "' id='" + data[i].id + "'/></td>";
+        else
+            rows += "<td>"+ data[i].word +"</td>"
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "<td><button type='button' onclick='RateDetailSelected(this.value)' value='" + data[i].id + "' id='selected" + data[i].id + "'>⇒</button></td>";
         rows += "</tr>";
@@ -219,7 +223,10 @@ function AddToRatesCategoriesTable(data) {
             rows += "<td></td>";
         else
             rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data[i].id + "'>⇑</button></td>";
-        rows += "<td><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data[i].word + "' id = '" + data[i].id + "' /></td > ";
+        if ($('#ServiceLanguageSelect').find(":selected").val() != -1)
+            rows += "<td><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data[i].word + "' id = '" + data[i].id + "' /></td > ";
+        else
+            rows += "<td>" + data[i].word + "</td>"
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "</tr>";
     }
@@ -415,11 +422,25 @@ function DeleteRateTargets(val) {
 function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
         if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
+            var categories = [];
+            $('#Option').find('input, :checkbox').each(function () {
+                if (this.type == 'checkbox') {
+                    var option = false;
+                    if ($('#' + this.attributes.id.nodeValue).is(':checked'))
+                        option = true;
+                    categories.push({ Category: this.attributes.id.nodeValue, Option: option });
+                }
+            });
+            $('#VehicleType').find('select').each(function () {
+                if (this.type == 'select-one')
+                    categories.push({ Category: $('#'+this.attributes.id.nodeValue).find(":selected").val()});
+                
+            });
             var dtCalculateQuote = {
                 ServiceID: $('#ServiceSelect').val(),
                 VerNum: parseInt(ServiceRate.verNum),
                 DateTimePickupTh: $('#DateTimePickUp').val(),
-                //Categories: [],
+                Categories: categories,
                 Passengers: parseInt($('#Pax').val()),
                 Kms: parseInt($('#Kms').val()),
                 DriveTime: parseInt($('#Drive').val()),
@@ -430,15 +451,6 @@ function SimulateTrip() {
                 .then(data => {
                     $('#Price').val(data.price);
                 });
-            $.ajaxSetup({
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            $.post('https://198.38.85.103:44344/api/quotes/simulate', dtCalculateQuote).done(function (data) {
-                ('#Price').val(data.price);
-            });
         }
         else {
             $.amaran({
@@ -665,12 +677,6 @@ function CreateRateCategorie() {
                 'position': 'top right'
             });
         }
-        else {
-            $.amaran({
-                'message': "Please Select Service Rate",
-                'position': 'top right'
-            });
-        }
     });
 }
 function DuplicateVernum() {
@@ -766,4 +772,71 @@ function UpdateLexo(val) {
             'position': 'top right'
         });
     });
+}
+function DuplicateVerNumOtherServiceModal() {
+    if (ServiceRate != null) {
+        $.post('DuplicateVerNumModal', { vernum: ServiceRate.verNum }).done(function (data) {
+            $('#modal-placeholder').html(data);
+            $('#modal-placeholder').find('.modal').modal('show');
+        });
+    }
+    else {
+        $.amaran({
+            'message': "Please Select Service Rate",
+            'position': 'top right'
+        });
+    }
+}
+function DuplicateVerNumOtherService() {
+    var dataToSend = $('#DuplicateVerNumOtherServiceModal').serialize();
+    $.post('DuplicateVerNumOtherService', dataToSend).done(function (data) {
+        $('#modal-placeholder').find('.modal').modal('hide');
+        if (data != null) {
+            $('#ServiceSelect').val(data.serviceId).change();
+            setTimeout(() => { $('#ServiceRateSelect').val(data.verNum).change(); }, 1000);
+            $.amaran({
+                'message': 'Service Rate Duplicated',
+                'position': 'top right'
+            });
+        }
+        else {
+            $.amaran({
+                'message': 'Duplicate: Error',
+                'position': 'top right'
+            });
+        }
+
+    });
+}
+async function Variables() {
+    $('#Option')
+        .empty();
+    $('#VehicleType')
+        .empty();
+    var option = "";
+    var vehicle="";
+    for (var i = 0; i < RatesDetails.length; i++) {
+        if (RatesDetails[i].rateGrouping == "Option") {
+            if (option == "")
+                option += "<span style='float: left;'>"
+            else
+                option += "<span style='float: left; margin - left: 20px;'>"
+            option += "<label>" + RatesDetails[i].word +" &nbsp;</label>";
+            option += "<input type='checkbox' id='" + RatesDetails[i].lexo + "'/>"
+            option +="</span>"
+        }
+        else if (RatesDetails[i].rateGrouping == "VehicleType") {
+            if (vehicle == "") {
+                vehicle += "<br><label>" + RatesDetails[i].rateGrouping + "</label>";
+                vehicle += "<select id='" + RatesDetails[i].rateGrouping + "'>";
+            }
+            vehicle += "<option value='" + RatesDetails[i].lexo + "' >" + RatesDetails[i].word +"</option >";
+        }
+    }
+    if (option != "")
+        $('#Option').append(option);
+    if (vehicle != "") {
+        vehicle += "</select >";
+        $('#VehicleType').append(vehicle);
+    }
 }

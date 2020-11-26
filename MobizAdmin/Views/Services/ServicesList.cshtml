@@ -19,11 +19,12 @@
                 @MobizAdmin.Resources.Services.ServicesText.Service_Name
             </th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
+        <tr style="background-color: @(item.Tsd <= DateTime.Now ? "#F44336": "");">
             <td>
                 @Html.DisplayFor(modelItem => item.Id)
             </td>
@@ -31,9 +32,15 @@
                 @Html.DisplayFor(modelItem => item.ServiceName)
             </td>
             <td>
+                @if (item.Tsd <= DateTime.Now) {
+                    <b>Expired</b>}
+            </td>
+            <td>
                 <a asp-action="ServiceRates" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName">@MobizAdmin.Resources.Services.ServicesText.Service_Rates</a> |
-                <a asp-action="ServiceDetails" asp-route-ServiceId="@item.Id">@MobizAdmin.Resources.Services.ServicesText.Service_Details</a> |
-                <a asp-controller="ServicesManager" asp-action="ManagerServiceSelected" asp-route-ServiceId="@item.Id">@MobizAdmin.Resources.Layout.Layout.Manager</a>
+                <a asp-action="ServiceDetails" asp-route-ServiceId="@item.Id">@MobizAdmin.Resources.Services.ServicesText.Service_Details</a>
+                @if (item.Tsd > DateTime.Now || item.Tsd==null)
+                { <a asp-controller="ServicesManager" asp-action="ManagerServiceSelected" asp-route-ServiceId="@item.Id"> | @MobizAdmin.Resources.Layout.Layout.Manager</a>
+                  <a asp-action="CreateRateCategorie" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | @MobizAdmin.Resources.Create.Create.Create_Rate_Categorie</a>}
             </td>
         </tr>
 }

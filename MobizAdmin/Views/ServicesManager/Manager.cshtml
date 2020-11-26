@@ -64,6 +64,10 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
                 <label>Duplicate:</label>
                 <input type="button" onclick="DuplicateVernum()" id="DuplicateVerNum" value="Duplicate VerNum" />
             </span>
+            <span style="float:left;margin-right:20px;">
+                <label>Duplicate for Other Service:</label>
+                <input type="button" onclick="DuplicateVerNumOtherServiceModal()" id="DuplicateVerNum" value="Duplicate VerNum" />
+            </span>
         </div>
     </div>
 <div class="bottompane row">
@@ -110,17 +114,16 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
                 <label>@MobizAdmin.Resources.Create.Create.Pax</label>
                 <input type="number" id="Pax" />
             </div>
-            <div>
-                <label>@MobizAdmin.Resources.Create.Create.Vehicle</label>
-                <input id="Vehicle" />
+            <div id="Option">
+
+            </div>
+            <br>
+            <div id="VehicleType">
+
             </div>
             <div>
                 <label>@MobizAdmin.Resources.Create.Create.Promo_Code</label>
                 <input id="Promo" />
-            </div>
-            <div>
-                <label>@MobizAdmin.Resources.Create.Create.Business</label>
-                <input id="Business" />
             </div>
             <div>
                 <br />

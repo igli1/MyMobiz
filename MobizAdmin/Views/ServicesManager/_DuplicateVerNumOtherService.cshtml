@@ -1,0 +1,35 @@
+﻿@model MobizAdmin.Data.DuplicateVernum
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addServiceLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Duplicate VerNum for Other Service</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="DuplicateVerNumOtherServiceModal">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <label class="control-label">Selected Service Id</label>
+                        <input asp-for="ServiceId" value="@ViewData["ServiceId"]" readonly class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Selected VerNum</label>
+                        <input asp-for="VerNum" value="@ViewData["VerNum"]" readonly class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Choose Service that you want to make duplication</label>
+                        <select asp-for="ServiceToDuplicateId" asp-items="@ViewBag.ServicesList" id="ServiceToBeDuplicatedSelect">
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-save="modal" onclick="DuplicateVerNumOtherService()">Duplicate</button>
+            </div>
+        </div>
+    </div>
+</div>

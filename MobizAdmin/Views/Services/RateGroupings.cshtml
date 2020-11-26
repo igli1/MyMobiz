@@ -1,0 +1,49 @@
+﻿@model IEnumerable<MobizAdmin.Data.Rategroupings>
+
+@{
+    ViewData["Title"] = "RateGroupings";
+}
+
+<h1>RateGroupings</h1>
+
+<p>
+    <a asp-action="CreateRateGrouping">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.RateGrouping)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsi)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tsu)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr style="background-color: @(item.Tsd <= DateTime.Now ? "#F44336": "");">
+            <td>
+                @Html.DisplayFor(modelItem => item.RateGrouping)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsi)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tsu)
+            </td>
+            <td>
+                @if(item.Tsd <= DateTime.Now){
+                <b>Expired</b>
+                }
+                else {
+                <a asp-action="DeleteRateGrouping" asp-route-RateGrouping="@item.RateGrouping">Delete</a>}
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
