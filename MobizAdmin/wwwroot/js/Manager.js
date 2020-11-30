@@ -1,7 +1,6 @@
 ﻿var RatesCategories = [];
 var RatesDetails = [];
 var SelectedRateDetail;
-var DefaultButtonColor;
 var ServiceRate = null;
 var TargetProperty = null;
 async function FetchCall(url, data) {
@@ -106,33 +105,35 @@ function ServiceRateSelected(val) {
                 $('#MaxPaxDefault').val(ServiceRate.maxPax);
                 $('#nQuotes').val(ServiceRate.nQuotes);
                 $('#locked').prop('checked', ServiceRate.locked);
-                var date = new Date().toISOString('yyyy-MM-ddThh:mm:ss.SSS');
-                var hour;
-                var onehour;
-                if (new Date().getHours() < 9) {
-                    hour = '0' + new Date().getHours();
-                    
-                    onehour = '0' + (new Date().getHours() + 1);
-                }
-                else if (new Date().getHours() ==9) {
-                    hour = '0' + new Date().getHours();
-                    onehour = (new Date().getHours() + 1);
-                }
-                else {
-                    hour = new Date().getHours();
-                    onehour = (new Date().getHours() + 1);
-                }
-                console.log()
-                var minsSecs = date.split(":")[1] +":"+ date.split(":")[2].split('Z')[0];
-                date = (date.split("T")[0] + "T" + (hour) + ":" + minsSecs);
-                $('#DateTimeOrder').val(date);
-                date = (date.split("T")[0] + "T" + (onehour) + ":" + minsSecs);
-                $('#DateTimePickUp').val(date);
+                AddDateTimePickUpAndOrder();
             }
         }).then(x => {
             GetRcRdRt(val);
         });
     }
+}
+function AddDateTimePickUpAndOrder() {
+    var date = new Date().toISOString('yyyy-MM-ddThh:mm:ss.SSS');
+    var hour;
+    var onehour;
+    if (new Date().getHours() < 9) {
+        hour = '0' + new Date().getHours();
+
+        onehour = '0' + (new Date().getHours() + 1);
+    }
+    else if (new Date().getHours() == 9) {
+        hour = '0' + new Date().getHours();
+        onehour = (new Date().getHours() + 1);
+    }
+    else {
+        hour = new Date().getHours();
+        onehour = (new Date().getHours() + 1);
+    }
+    var minsSecs = date.split(":")[1] + ":" + date.split(":")[2].split('Z')[0];
+    date = (date.split("T")[0] + "T" + (hour) + ":" + minsSecs);
+    $('#DateTimeOrder').val(date);
+    date = (date.split("T")[0] + "T" + (onehour) + ":" + minsSecs);
+    $('#DateTimePickUp').val(date);
 }
 // Checks if date is past, future or today in order to change coors. val = date
 function CheckDate(val) {
@@ -267,6 +268,8 @@ function HasRateTargets() {
 }
 //onClick Deletes Rate Details from database. val= CategoryId
 function DeleteRateDetails(val) {
+    if (SelectedRateDetail == val.id)
+        Deselect();
     var index = GetRateDetailsIndex(val.id);
     var Lang = $('#ServiceLanguageSelect').find(":selected").val();
     $.post('DeleteRateDetails', { rdId: RatesDetails[index].ratesDetails[0].id, rcId: RatesDetails[index].id, langId: Lang}).done(function (data) {
@@ -282,6 +285,10 @@ function DeleteRateDetails(val) {
             'position': 'top right'
         });});
     DeleteVariables(index);
+}
+function Deselect() {
+    SelectedRateDetail = null;
+    EmptiesRateTargets();
 }
 //onClick Creates a Rates Details. val = CategoryId.
 function CreateRatesDetails(val) {
@@ -453,7 +460,7 @@ function DeleteRateTargets(val) {
 }
 function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
-        if (ServiceRate.defDate > new Date()) {
+        if (ServiceRate.endDate >= new Date().toISOString('yyyy-MM-ddT')) {
             if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
                 var categories = [];
                 $('#Option').find('input, :checkbox').each(function () {
@@ -494,7 +501,7 @@ function SimulateTrip() {
         }
         else {
             $.amaran({
-                'message': 'Service Rate defDate has passed',
+                'message': 'Service Rate endDate has passed',
                 'position': 'top right'
             });
         }
@@ -914,6 +921,18 @@ function AddVariables(index) {
     }
 }
 function UpdateCache() {
-    $.post('https://www.igli-developing.com:44344/api/quotes/update', { key: 'Hell Yeah' }).done(function (data) {
+    $.post('https://www.igli-developing.com:44344/api/quotes/update').done(function (data, status) {
+        if (status == "success") {
+            $.amaran({
+                'message': 'Cache Updated',
+                'position': 'top right'
+            });
+        }
+        else {
+            $.amaran({
+                'message': 'Cannot Update Cache',
+                'position': 'top right'
+            });
+        }
     })
 }
