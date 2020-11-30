@@ -31,8 +31,12 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
         </div>
         <div class="form-group">
             <label class="control-label">Select Language</label>
-            <select id="ServiceLanguageSelect"  style="width:100px;" onchange="ServiceLanguageSelected(this.value)">
+            <select id="ServiceLanguageSelect" style="width:100px;" onchange="ServiceLanguageSelected(this.value)">
             </select>
+        </div>
+        <div>
+            <label>Update Api Cache</label>
+            <input type="button" onclick="UpdateCache()" value="Update Cache" id="UpdateCache"/>
         </div>
         <div class="details">
             <span style="float:left;margin-right:20px;">
@@ -92,7 +96,7 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
         <div id="Variables" name="Variables">
             <div>
                 <label>@MobizAdmin.Resources.Create.Create.Date_Time_Order</label>
-                <input type="datetime-local">
+                <input type="datetime-local" id="DateTimeOrder">
             </div>
             <div>
                 <label>@MobizAdmin.Resources.Create.Create.Date_Time_PickUp</label>

@@ -1,0 +1,64 @@
+﻿@model IEnumerable<MobizAdmin.Data.RateCategoriesType>
+
+@{
+    ViewData["Title"] = "RatesCategoriesList";
+}
+
+<h1>Rates Categories List</h1>
+<h4>@MobizAdmin.Resources.Services.ServicesText.Service_Name: <u>@ViewData["ServiceName"]</u></h4>
+<p>
+    <a asp-action="CreateRateCategorie" asp-route-ServiceId="@Model.FirstOrDefault().ServiceId" asp-route-ServiceName="@ViewData["ServiceName"]">@MobizAdmin.Resources.Create.Create.Create_Rate_Categorie</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Lexo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CategoryConditions)
+            </th>
+
+
+            <th>
+                @Html.DisplayNameFor(model => model.RateGrouping)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr style="background-color: @(item.Editable==false ? "gray":"") @(item.Tsd <= DateTime.Now ? "#F44336": "");">
+            <td>
+                @Html.DisplayFor(modelItem => item.Lexo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryConditions)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateGrouping)
+            </td>
+            <td>
+            <td>
+                @if (item.Tsd <= DateTime.Now)
+                {
+                    <b>Expired</b>
+                }
+                else if (item.Editable == false)
+                {
+                    <b>Cannot Edit</b>
+                }
+                else
+                {
+                    <a asp-action="RateCategorieDetails" asp-route-id="@item.Id" asp-route-ServiceName="@ViewData["ServiceName"]">Details</a>
+                    <a asp-action="DeleteRateCategorie" asp-route-Id="@item.Id" asp-route-ServiceId="@item.ServiceId" asp-route-ServiceName="@ViewData["ServiceName"]">Delete</a>
+                }
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="ServicesList">@MobizAdmin.Resources.Services.ServicesText.Back_to_List</a>
+</div>

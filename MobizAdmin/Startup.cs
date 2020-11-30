@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace MobizAdmin
 {
@@ -24,7 +23,6 @@ namespace MobizAdmin
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<AuthenticationDbContext>(options =>
                 options.UseMySql(
                     Configuration.GetConnectionString("AuthConnection")));

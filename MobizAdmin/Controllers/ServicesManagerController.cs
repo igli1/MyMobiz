@@ -237,7 +237,7 @@ namespace MobizAdmin.Controllers
         public PartialViewResult CreateRateCategorieModal(string serviceId)
         {
             ViewData["ServiceId"] = serviceId;
-            ViewBag.RateGrouping = new SelectList(_context.Rategroupings.ToDictionary(e => e.RateGrouping, e => e.RateGrouping), "Key", "Value");
+            ViewBag.RateGrouping = new SelectList(_context.Rategroupings.Where(rg=>rg.Tsd>DateTime.Now || rg.Tsd==null).ToDictionary(e => e.RateGrouping, e => e.RateGrouping), "Key", "Value");
             return PartialView("~/Views/ServicesManager/_CreateRateCategorie.cshtml");
         }
         [HttpPost]

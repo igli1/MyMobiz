@@ -10,7 +10,6 @@ namespace MyMobiz.Models
         public string ServiceKey { get; set; }
         public int VerNum { get; set; }
         public DateTime DateTimePickupTh { get; set; }
-        public DateTime DateTimeArrivalTh { get; set; }
         public string Language { get; set; }
         public int Passengers { get; set; }
         public int Kms { get; set; }

@@ -74,9 +74,8 @@ body {
 }
 
 .tr_hover:hover {
-    background-color: cyan;
+    transform: scale(1.1);
 }
-
 
 .container1600 {
     max-width: 1600px;
@@ -156,4 +155,60 @@ input[type="checkbox"]:checked + .imgLabel img {
 .InputNoBorder {
     border-width: 0px;
     border: none;
+}
+label.arrow {
+    width: 3vmin;
+    height: 3vmin;
+    box-sizing: border-box;
+}
+label.up {
+    transform: rotate(-45deg);
+    vertical-align: bottom;
+}
+label.right {
+    transform: rotate(45deg);
+    vertical-align: bottom;
+}
+label.down {
+    transform: rotate(135deg);
+    vertical-align: bottom;
+}
+label.arrow::before {
+    content: '';
+    width: 100%;
+    height: 100%;
+    border-width: .4vmin .4vmin 0 0;
+    border-style: solid;
+    border-color: gray;
+    transition: .2s ease;
+    display: block;
+    transform-origin: 100% 0;
+}
+label.arrow:after {
+    content: '';
+    float: left;
+    position: relative;
+    top: -99%;
+    width: 100%;
+    height: 100%;
+    border-width: 0 .4vmin 0 0;
+    border-style: solid;
+    border-color: gray;
+    transform-origin: 100% 0;
+    transition: .2s ease;
+}
+label.arrow:hover:after{
+    transform: rotate(45deg);
+    border-color: orange;
+    height: 110%;
+}
+label.arrow:hover::before {
+    border-color: orange;
+    transform: scale(.8);
+}
+.rdSelected {
+    background-color: cyan;
+}
+.rdSelected input {
+    background-color: cyan;
 }

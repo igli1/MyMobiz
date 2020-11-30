@@ -1,0 +1,54 @@
+﻿@model MobizAdmin.Data.Ratecategories
+
+@{
+    ViewData["Title"] = "Rate Categorie Details";
+}
+
+<h1>Rate Categorie Details</h1>
+<h4>Service Name: @ViewData["ServiceName"]</h4>
+<div>
+    <h4>Ratecategories</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Lexo)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Lexo)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CategoryConditions)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CategoryConditions)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Tsi)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Tsi)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Tsu)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Tsu)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.RateGrouping)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.RateGrouping)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Service)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ServiceId)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="EditRateCategorie" asp-route-id="@Model.Id" asp-route-ServiceName="@ViewData["ServiceName"]">Edit</a> |
+    <a asp-action="RateCategories" asp-route-ServiceId="@Model.ServiceId" asp-route-ServiceName="@ViewData["ServiceName"]">Back to List</a>
+</div>

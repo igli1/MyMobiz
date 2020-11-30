@@ -14,9 +14,10 @@ using MyMobiz.RatesTarget;
 using Microsoft.Extensions.Caching.Memory;
 using LoggerService;
 using Microsoft.AspNetCore.Cors;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
-
+using MyMobiz.iHostedService;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 namespace MyMobiz.Controllers
 {
     [EnableCors("AllowAll")]
@@ -49,31 +50,32 @@ namespace MyMobiz.Controllers
             // Getting Service for Selected ServiceId
             Services service = _cache.Get<List<Services>>("Services").FirstOrDefault(e => e.Id == dtCalculateQuote.ServiceID);
             Quotes quote = new Quotes(); //Creating a new Quote
-            quote.RefererId = _context.Webreferers.AsNoTracking().FirstOrDefault(e => e.ServiceId == dtCalculateQuote.ServiceID).Id;
+            quote.RefererId = service.Webreferers.FirstOrDefault().Id; // for testing purposes
             quote.ServiceId = service.Id;
             List<DTCategories> dtCategories = dtCalculateQuote.Categories;
             dynamic rates;
             if (dtCalculateQuote.Categories == null || dtCalculateQuote.Categories.Count == 0)
             {
-                rates = service.Servicerates.FirstOrDefault(sr => sr.VerNum == dtCalculateQuote.VerNum);
+                rates = service.Servicerates.Where(sr => sr.EndDate >= DateTime.Today).Where(sr => sr.AppDate <= DateTime.Today).OrderByDescending(sr => sr.AppDate).FirstOrDefault();
             }
             else
             {
-                rates = service.Servicerates.Where(sr => sr.Locked == false).Where(sr => sr.AppDate <= DateTime.Today).OrderByDescending(sr => sr.AppDate).Select(sr => new
+                rates = service.Servicerates.Where(sr => sr.EndDate >= DateTime.Today).Where(sr => sr.AppDate <= DateTime.Today).OrderByDescending(sr => sr.AppDate).Select(sr => new
                 {
                     VerNum = sr.VerNum,
                     EurKm = sr.EurKm,
                     EurMinDrive = sr.EurMinDrive,
                     EurMinimum = sr.EurMinimum,
                     EurMinWait = sr.EurMinWait,
-                    Lexo = sr.Lexo,
                     Ratedetails = sr.Ratedetails.Where(rd => service.Ratecategories.Any(rc => dtCalculateQuote.Categories.Any(dtc => (dtc.Option == null || dtc.Option == true) && dtc.Category == rc.Lexo) && rc.Id == rd.CategoryId)).Select(rd => new
                     {
                         Ratetargets = rd.Ratetargets.ToArray()
                     }).ToArray()
                 }).FirstOrDefault();
             }
-            DTCalculate calculate= CalculatePriceAsync(dtCalculateQuote, rates); //calculating price
+            if(rates==null)
+                return BadRequest();
+            DTCalculate calculate = CalculatePriceAsync(dtCalculateQuote, rates); //calculating price
             quote.Price = calculate.Price;
             quote.VerNum = calculate.VerNum;
             if (quote.Price == null || quote.Price == 0)
@@ -141,28 +143,25 @@ namespace MyMobiz.Controllers
         {
             decimal price;
             // If a service doesn't have categories only default rate
-            if (dtCalculateQuote.Categories ==null || dtCalculateQuote.Categories.Count == 0)
+            if (dtCalculateQuote.Categories == null || dtCalculateQuote.Categories.Count == 0)
             {
                 _logger.LogInfo("No categories selected");
-                price = ((rates.EurKm * dtCalculateQuote.Kms) + (rates.EurMinDrive * dtCalculateQuote.DriveTime) +
-                    (rates.EurMinWait * dtCalculateQuote.WaitTime));
-                if (price < rates.EurMinimum && rates.EurMinimum != null)
-                    price = rates.EurMinimum ?? 0;
-                
-                return (new DTCalculate() { VerNum = rates.VerNum, Price = price });
+                return CalculateWithoutTargets(dtCalculateQuote, rates);
             }
             //If a service has categories and rate details
             else
             {
                 Servicerates calculatedRate = new Servicerates();
                 List<Target> totalPrice = new List<Target>();
-                //new calculation method
+                //price calculation with rate targets
+                int count = 0;
                 for (int i = 0; i < rates.Ratedetails.Length; i++)
                 {
                     for (int j = 0; j < rates.Ratedetails[i].Ratetargets.Length; j++)
                     {
                         if (rates.Ratedetails[i].Ratetargets[j].RateTarget != "TotalPrice" && rates.Ratedetails[i].Ratetargets[j].RateTarget != "EurMile" && rates.Ratedetails[i].Ratetargets[j].RateTarget != "MaxPax")
                         {
+                            count++;
                             PropertyInfo newRateProperty = calculatedRate.GetType().GetProperty(rates.Ratedetails[i].Ratetargets[j].RateTarget);
                             decimal ratesValue = (decimal)((rates.GetType().GetProperty(rates.Ratedetails[i].Ratetargets[j].RateTarget).GetValue(rates, null)));
                             decimal previousValue = 0;
@@ -194,31 +193,40 @@ namespace MyMobiz.Controllers
                         }
                     }
                 }
-                //calculating the price
-                price = ((calculatedRate.EurKm * dtCalculateQuote.Kms) + (calculatedRate.EurMinDrive * dtCalculateQuote.DriveTime) +
-                    (calculatedRate.EurMinWait * dtCalculateQuote.WaitTime));
-                //looping for total price targets
-                for (int i = 0; i < totalPrice.Count; i++)
+                //if it has rates details but no rate targets
+                if(count == 0)
                 {
-                    switch (totalPrice[i].op)
-                    {
-                        case "+":
-                            price += totalPrice[i].Figure;
-                            break;
-                        case "*":
-                            price *= totalPrice[i].Figure;
-                            break;
-                        case "%":
-                            price += ((totalPrice[i].Figure / 100) * price);
-                            break;
-                        case "=":
-                            price = totalPrice[i].Figure;
-                            break;
-                    }
+                    return CalculateWithoutTargets(dtCalculateQuote, rates);
                 }
-                if (price < rates.EurMinimum && rates.EurMinimum != null)
-                    price = rates.EurMinimum ?? 0;
-                return new DTCalculate() { VerNum = rates.VerNum, Price = price };
+                //if it hase rate targets
+                else
+                {
+                    //calculating the price
+                    price = ((calculatedRate.EurKm * dtCalculateQuote.Kms) + (calculatedRate.EurMinDrive * dtCalculateQuote.DriveTime) +
+                        (calculatedRate.EurMinWait * dtCalculateQuote.WaitTime));
+                    //looping for total price targets
+                    for (int i = 0; i < totalPrice.Count; i++)
+                    {
+                        switch (totalPrice[i].op)
+                        {
+                            case "+":
+                                price += totalPrice[i].Figure;
+                                break;
+                            case "*":
+                                price *= totalPrice[i].Figure;
+                                break;
+                            case "%":
+                                price += ((totalPrice[i].Figure / 100) * price);
+                                break;
+                            case "=":
+                                price = totalPrice[i].Figure;
+                                break;
+                        }
+                    }
+                    if (price < rates.EurMinimum && rates.EurMinimum != null)
+                        price = rates.EurMinimum ?? 0;
+                    return new DTCalculate() { VerNum = rates.VerNum, Price = price };
+                }
             }
         }
         // Accepting Post request from Route 'api/quotes/simulate'
@@ -229,7 +237,7 @@ namespace MyMobiz.Controllers
         {
             Services service = _cache.Get<List<Services>>("Services").FirstOrDefault(e => e.Id == dtCalculateQuote.ServiceID);
             dynamic rates;
-            if (dtCalculateQuote.Categories==null || dtCalculateQuote.Categories.Count == 0)
+            if (dtCalculateQuote.Categories == null || dtCalculateQuote.Categories.Count == 0)
             {
                 rates = service.Servicerates.FirstOrDefault(sr => sr.VerNum == dtCalculateQuote.VerNum);
             }
@@ -248,8 +256,29 @@ namespace MyMobiz.Controllers
                         Ratetargets = rd.Ratetargets.ToArray()
                     }).ToArray()
                 }).FirstOrDefault();
-            } 
+            }
+            if (rates == null)
+                return BadRequest();
             return Ok(CalculatePriceAsync(dtCalculateQuote, rates));
+        }
+        [HttpPost]
+        [Route("update")]
+        public ActionResult<dynamic> UpdateCache()
+        {
+            var update = new TimedHostedService(_cache, _scopeFactory, _logger);
+            update.DoWork(null);
+            update.Dispose();
+            return Ok();
+        }
+        private DTCalculate CalculateWithoutTargets(DTCalculateQuote dtCalculateQuote, dynamic rates)
+        {
+            decimal price;
+            price = ((rates.EurKm * dtCalculateQuote.Kms) + (rates.EurMinDrive * dtCalculateQuote.DriveTime) +
+                    (rates.EurMinWait * dtCalculateQuote.WaitTime));
+            if (price < rates.EurMinimum && rates.EurMinimum != null)
+                price = rates.EurMinimum ?? 0;
+
+            return (new DTCalculate() { VerNum = rates.VerNum, Price = price });
         }
     }
 }

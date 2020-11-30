@@ -30,6 +30,7 @@ function ServiceSelected(val) {
             .append('<option value="">-Select Service Rate -</option>')
             ;
         $('#ServiceLanguageSelect').empty();
+
         ResetInServiceRateSelect(); //Resets Page
         EmptiesDefaults();
         ServiceRate = null;
@@ -55,6 +56,7 @@ function ResetInServiceRateSelect() {
     $('#RatesCategories')
         .empty();
     EmptiesRateTargets();
+    $('#nQuotes').val('');
     $('#Conditions').val('');
     $('#defDate').val('').css("color", "black");
     $('#appDate').val('').css("color", "black");
@@ -104,6 +106,28 @@ function ServiceRateSelected(val) {
                 $('#MaxPaxDefault').val(ServiceRate.maxPax);
                 $('#nQuotes').val(ServiceRate.nQuotes);
                 $('#locked').prop('checked', ServiceRate.locked);
+                var date = new Date().toISOString('yyyy-MM-ddThh:mm:ss.SSS');
+                var hour;
+                var onehour;
+                if (new Date().getHours() < 9) {
+                    hour = '0' + new Date().getHours();
+                    
+                    onehour = '0' + (new Date().getHours() + 1);
+                }
+                else if (new Date().getHours() ==9) {
+                    hour = '0' + new Date().getHours();
+                    onehour = (new Date().getHours() + 1);
+                }
+                else {
+                    hour = new Date().getHours();
+                    onehour = (new Date().getHours() + 1);
+                }
+                console.log()
+                var minsSecs = date.split(":")[1] +":"+ date.split(":")[2].split('Z')[0];
+                date = (date.split("T")[0] + "T" + (hour) + ":" + minsSecs);
+                $('#DateTimeOrder').val(date);
+                date = (date.split("T")[0] + "T" + (onehour) + ":" + minsSecs);
+                $('#DateTimePickUp').val(date);
             }
         }).then(x => {
             GetRcRdRt(val);
@@ -187,28 +211,26 @@ function AddToRatesDetailsTable(data) {
     var Categorie = $('#RatesDetails').attr('data-Categorie');
     var Grouping = $('#RatesDetails').attr('data-Grouping');
     $('#RatesDetails').html('');
-    var rows = "<tr> <th></th><th>" + Categorie + "</th><th>" + Grouping + "</th><th></th></tr>";
+    var rows = "<tr> <th></th><th>" + Categorie + "</th><th>" + Grouping + "</th><th></th><th></th></tr>";
     for (var i = 0; i < data.length; i++) {
-        rows += "<tr class='tr_hover'>";
+        rows += "<tr class='tr_hover' style='height: 60px;' id='tr" + data[i].id+"'>";
         if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
-            rows += "<td></td>";
+            rows += "<td style='padding-left: 10px;'></td>";
         else
-            rows += "<td><button type='button' class='tableBtn' onclick='DeleteRateDetails(this.value)' value='" + data[i].id + "'>⇓</button></td>";
+            rows += "<td style='padding-left: 10px;'><label class='arrow down' onclick='DeleteRateDetails(this)' id='" + data[i].id + "'></label></td>";
         if ($('#ServiceLanguageSelect').find(":selected").val()!=-1 )
-            rows += "<td><input  class='InputNoBorder' onChange='UpdateLexo(this)' value='" + data[i].word + "' id='" + data[i].id + "'/></td>";
+            rows += "<td style='padding-left: 30px;' ><input  class='InputNoBorder' onChange='UpdateLexo(this)' value='" + data[i].word + "' id='" + data[i].id + "'/></td>";
         else
-            rows += "<td>"+ data[i].word +"</td>"
-        rows += "<td>" + data[i].rateGrouping + "</td>";
-        rows += "<td><button type='button' onclick='RateDetailSelected(this.value)' value='" + data[i].id + "' id='selected" + data[i].id + "'>⇒</button></td>";
+            rows += "<td style='padding-left: 30px;'>"+ data[i].word +"</td>"
+        rows += "<td><label>" + data[i].rateGrouping + "</label></td>";
+        rows += "<td><label class='arrow right' onclick='RateDetailSelected(this)' id='selected" + data[i].id + "' name='Arrow'></label></td>";
+        rows += "<td><img id='rt" + data[i].id + "' name='Img' height='35px' width='35px' src='../Images/rate-icon.jpg' onclick='RateDetailSelected(this)'/></td>"
         rows += "</tr>";
-
     }
     $('#RatesDetails').append(rows);
-    if (DefaultButtonColor == null && data.length > 0) //Gets Default Button Color
-        DefaultButtonColor = $('#selected' + data[0].id).css('background-color');
     HasRateTargets();
     if (SelectedRateDetail != null && data != null) {
-        $('#selected' + SelectedRateDetail).css('background-color', 'crimson');
+        $("tr[id ='tr" + SelectedRateDetail + "']").addClass('rdSelected');
     }
 }
 //Adds data to Rate Categories Table. data = RatesCategories Array
@@ -218,15 +240,15 @@ function AddToRatesCategoriesTable(data) {
     $('#RatesCategories').html('');
     var rows = "<tr> <th></th><th>" + Categorie + " &nbsp;</th><th>" + Grouping + "</th><th></th></tr>";
     for (var i = 0; i < data.length; i++) {
-        rows += "<tr class='tr_hover'>";
+        rows += "<tr class='tr_hover' style='height: 40px;'>";
         if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
-            rows += "<td></td>";
+            rows += "<td style='padding-left: 10px;'></td>";
         else
-            rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data[i].id + "'>⇑</button></td>";
+            rows += "<td style='padding-left: 10px;'><label class='arrow up' width='10px'onclick='CreateRatesDetails(this)' id='" + data[i].id + "'></label></td>";
         if ($('#ServiceLanguageSelect').find(":selected").val() != -1)
-            rows += "<td><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data[i].word + "' id = '" + data[i].id + "' /></td > ";
+            rows += "<td style='padding-left: 30px;'><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data[i].word + "' id = '" + data[i].id + "' /></td > ";
         else
-            rows += "<td>" + data[i].word + "</td>"
+            rows += "<td style='padding-left: 30px;'>" + data[i].word + "</td>"
         rows += "<td>" + data[i].rateGrouping + "</td>";
         rows += "</tr>";
     }
@@ -234,22 +256,18 @@ function AddToRatesCategoriesTable(data) {
 }
 //Checks if Rate Detail has Rate Targets and Changes the selected button to blue and Counts them
 function HasRateTargets() {
-    var count = 0;
     for (var i = 0; i < RatesDetails.length; i++) {
         if (RatesDetails[i].ratesDetails[0].rateTargets.length > 0) {
-            $('#selected' + RatesDetails[i].id).css('background-color', 'teal');
-            count += RatesDetails[i].ratesDetails[0].rateTargets.length;
+            //$('#rt' + RatesDetails[i].id).attr('src', '../Images/rate-icon.jpg');
+            $('#rt' + RatesDetails[i].id).show();
         }
-    }
-    $('#nOfRateTargets').val(count);
+        else
+            $('#rt' + RatesDetails[i].id).hide();
+    };
 }
 //onClick Deletes Rate Details from database. val= CategoryId
 function DeleteRateDetails(val) {
-    var index = GetRateDetailsIndex(val)
-    $.amaran({
-        'message': "Removing Rate Detail with Category: '" + RatesDetails[index].lexo + "' and RateDetail id: " + RatesDetails[index].ratesDetails[0].id,
-        'position': 'top right'
-    });
+    var index = GetRateDetailsIndex(val.id);
     var Lang = $('#ServiceLanguageSelect').find(":selected").val();
     $.post('DeleteRateDetails', { rdId: RatesDetails[index].ratesDetails[0].id, rcId: RatesDetails[index].id, langId: Lang}).done(function (data) {
             if (data != null) {
@@ -257,8 +275,13 @@ function DeleteRateDetails(val) {
                 RatesDetails.splice(index, 1);
                 AddToRatesCategoriesTable(RatesCategories);
                 AddToRatesDetailsTable(RatesDetails);
-            }
-    });
+        }
+    }).then(function (){
+        $.amaran({
+            'message': "Removing Rate Detail with Category: '" + RatesDetails[index].lexo + "' and RateDetail id: " + RatesDetails[index].ratesDetails[0].id,
+            'position': 'top right'
+        });});
+    DeleteVariables(index);
 }
 //onClick Creates a Rates Details. val = CategoryId.
 function CreateRatesDetails(val) {
@@ -275,11 +298,7 @@ function CreateRatesDetails(val) {
         });
     }
     else {
-        var index = GetRateCategorieIndex(val);
-        $.amaran({
-            'message': "Creating New Rate Detail with Category: '" + RatesCategories[index].lexo + "' and VerNum: " + ServiceRate.verNum,
-            'position': 'top right'
-        });
+        var index = GetRateCategorieIndex(val.id);
         var Lang = $('#ServiceLanguageSelect').find(":selected").val();
         var ratesDetails = {
             verNum: ServiceRate.verNum,
@@ -295,6 +314,12 @@ function CreateRatesDetails(val) {
         }).then(x => {
             AddToRatesCategoriesTable(RatesCategories);
             AddToRatesDetailsTable(RatesDetails);
+            AddVariables(GetRateDetailsIndex(x.id));
+        }).then(function () {
+            $.amaran({
+                'message': "Creating New Rate Detail with Category: '" + RatesCategories[index].word + "' and VerNum: " + ServiceRate.verNum,
+                'position': 'top right'
+            });
         });
     }
 }
@@ -316,15 +341,20 @@ function GetRateCategorieIndex(val) {
 }
 //onClick Selects Rate Detail. val = RateCategory Id
 function RateDetailSelected(val) {
-    if (SelectedRateDetail != null) //Changes Button Color to Default
-        $('#selected' + SelectedRateDetail).css('background-color', DefaultButtonColor);
- 
-    SelectedRateDetail = val;
+    var rdId;
+    if (val.attributes.name.value =='Arrow')
+        rdId = val.id.split('selected')[1];
+    else if (val.attributes.name.value == 'Img')
+        rdId = val.id.split('rt')[1];
+    if (SelectedRateDetail != null) { //Changes Button Color to Default
+        $("tr[id ='tr" + SelectedRateDetail + "']").removeClass('rdSelected');
+    }
+    SelectedRateDetail = rdId;
+    $("tr[id ='tr" + SelectedRateDetail + "']").addClass('rdSelected');
     HasRateTargets();
     EmptiesRateTargets();
-    DisplayTargets(val);
-    $('#selected' + SelectedRateDetail).css('background-color', 'crimson'); //Changes Selected Rd button color to red
-    var index = GetRateDetailsIndex(val);
+    var index = GetRateDetailsIndex(SelectedRateDetail);
+    DisplayTargets(index);
     $('#Conditions').val(RatesDetails[index].ratesDetails[0].detailConditions);
 }
 //Block special characters for Rate Operator
@@ -355,9 +385,8 @@ function EmptiesDefaults() {
     $('#endDate').val('');
     $('#verNum').val('');
 }
-//Displays Rate Targets for selected Rate Detail. val = CategoryId
-function DisplayTargets(val) {
-    var index = GetRateDetailsIndex(val);
+//Displays Rate Targets for selected Rate Detail. index = Ratedetail index
+function DisplayTargets(index) {
     for (var i = 0; i < RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
         $('#' + RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget + 'Op').val(RatesDetails[index].ratesDetails[0].rateTargets[i].rateOperator);
         $('#' + RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget + 'Figure').val(RatesDetails[index].ratesDetails[0].rateTargets[i].rateFigure);
@@ -389,11 +418,12 @@ function CreateRateTargets(val, index) {
             RatesDetails[index].ratesDetails[0].rateTargets.push(data);
             $('#' + val + 'Checkbox').prop('checked', true);
         }
-    }).then(x => {
+    }).then(function () {
         $.amaran({
             'message': val + ' Rate Target Created',
             'position': 'top right'
         });
+        HasRateTargets();
     });
 }
 //Gets the Rate Target Index. rdIndex = RateDetail Index, val = Rate Target
@@ -410,51 +440,61 @@ function DeleteRateTargets(val) {
     var rtIndex = RateTargetIndex(index, val);
     var id = RatesDetails[index].ratesDetails[0].rateTargets[rtIndex].id;
     $.post('DeleteRateTargets', { id: id }).done(function (data) {
+        RatesDetails[index].ratesDetails[0].rateTargets.splice(rtIndex, 1);
+        $('#' + val + 'Op').val('');
+        $('#' + val + 'Figure').val('');
+        HasRateTargets();
+    }).then(x=> {
         $.amaran({
-            'message': data,
+            'message': 'Rate Target Deleted',
             'position': 'top right'
         });
     });
-    RatesDetails[index].ratesDetails[0].rateTargets.splice(rtIndex, 1);
-    $('#' + val + 'Op').val('');
-    $('#' + val + 'Figure').val('');
 }
 function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
-        if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
-            var categories = [];
-            $('#Option').find('input, :checkbox').each(function () {
-                if (this.type == 'checkbox') {
-                    var option = false;
-                    if ($('#' + this.attributes.id.nodeValue).is(':checked'))
-                        option = true;
-                    categories.push({ Category: this.attributes.id.nodeValue, Option: option });
-                }
-            });
-            $('#VehicleType').find('select').each(function () {
-                if (this.type == 'select-one')
-                    categories.push({ Category: $('#'+this.attributes.id.nodeValue).find(":selected").val()});
-                
-            });
-            var dtCalculateQuote = {
-                ServiceID: $('#ServiceSelect').val(),
-                VerNum: parseInt(ServiceRate.verNum),
-                DateTimePickupTh: $('#DateTimePickUp').val(),
-                Categories: categories,
-                Passengers: parseInt($('#Pax').val()),
-                Kms: parseInt($('#Kms').val()),
-                DriveTime: parseInt($('#Drive').val()),
-                WaitTime: parseInt($('#Wait').val()),
-            };
-            //Rest Api Request...
-            FetchCall('https://198.38.85.103:44344/api/quotes/simulate', dtCalculateQuote)
-                .then(data => {
-                    $('#Price').val(data.price);
+        if (ServiceRate.defDate > new Date()) {
+            if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
+                var categories = [];
+                $('#Option').find('input, :checkbox').each(function () {
+                    if (this.type == 'checkbox') {
+                        var option = false;
+                        if ($('#' + this.attributes.id.nodeValue).is(':checked'))
+                            option = true;
+                        categories.push({ Category: this.attributes.id.nodeValue, Option: option });
+                    }
                 });
+                $('#VehicleType').find('select').each(function () {
+                    if (this.type == 'select-one')
+                        categories.push({ Category: $('#' + this.attributes.id.nodeValue).find(":selected").val() });
+
+                });
+                var dtCalculateQuote = {
+                    ServiceID: $('#ServiceSelect').val(),
+                    VerNum: parseInt(ServiceRate.verNum),
+                    DateTimePickupTh: $('#DateTimePickUp').val(),
+                    Categories: categories,
+                    Passengers: parseInt($('#Pax').val()),
+                    Kms: parseInt($('#Kms').val()),
+                    DriveTime: parseInt($('#Drive').val()),
+                    WaitTime: parseInt($('#Wait').val()),
+                };
+                //Rest Api Request...
+                FetchCall('https://www.igli-developing.com:44344/api/quotes/simulate', dtCalculateQuote)
+                    .then(data => {
+                        $('#Price').val(data.price);
+                    });
+            }
+            else {
+                $.amaran({
+                    'message': 'Please fill all the data!',
+                    'position': 'top right'
+                });
+            }
         }
         else {
             $.amaran({
-                'message': 'Please fill all the data!',
+                'message': 'Service Rate defDate has passed',
                 'position': 'top right'
             });
         }
@@ -817,18 +857,15 @@ async function Variables() {
     var vehicle="";
     for (var i = 0; i < RatesDetails.length; i++) {
         if (RatesDetails[i].rateGrouping == "Option") {
-            if (option == "")
-                option += "<span style='float: left;'>"
-            else
-                option += "<span style='float: left; margin - left: 20px;'>"
+            option += "<span style='display: inline-block;' id='" + RatesDetails[i].lexo + "Option'>"
             option += "<label>" + RatesDetails[i].word +" &nbsp;</label>";
             option += "<input type='checkbox' id='" + RatesDetails[i].lexo + "'/>"
             option +="</span>"
         }
         else if (RatesDetails[i].rateGrouping == "VehicleType") {
             if (vehicle == "") {
-                vehicle += "<br><label>" + RatesDetails[i].rateGrouping + "</label>";
-                vehicle += "<select id='" + RatesDetails[i].rateGrouping + "'>";
+                vehicle += "<label style='text-align: center;' id='" + RatesDetails[i].rateGrouping + "Label'>" + RatesDetails[i].rateGrouping + "</label>";
+                vehicle += "<select id='" + RatesDetails[i].rateGrouping + "Select'>";
             }
             vehicle += "<option value='" + RatesDetails[i].lexo + "' >" + RatesDetails[i].word +"</option >";
         }
@@ -839,4 +876,44 @@ async function Variables() {
         vehicle += "</select >";
         $('#VehicleType').append(vehicle);
     }
+}
+//Deletes variables in case rate detail is deleted. index = ratedetail index
+function DeleteVariables(index) {
+    if (RatesDetails[index].rateGrouping == "Option") {
+        $('#' + RatesDetails[index].lexo + 'Option').remove();
+    }
+    else if (RatesDetails[index].rateGrouping == "VehicleType") {
+        $('#VehicleTypeSelect option[value=' + RatesDetails[index].lexo + ']').remove();
+        if ($('#VehicleTypeSelect option').length==0) {
+            $('#VehicleTypeSelect').remove();
+            $('#VehicleTypeLabel').remove();
+        }
+    }
+}
+function AddVariables(index) {
+    if (RatesDetails[index].rateGrouping == "Option") {
+        var option = "";
+        option += "<span style='display: inline-block;' id='" + RatesDetails[index].lexo + "Option'>"
+        option += "<label>" + RatesDetails[index].word + " &nbsp;</label>";
+        option += "<input type='checkbox' id='" + RatesDetails[index].lexo + "'/>"
+        option += "</span>"
+        $('#Option').append(option);
+    }
+    else if (RatesDetails[index].rateGrouping == "VehicleType") {
+        var vehicle=""
+        if ($("#VehicleTypeSelect").length == 0) {
+            vehicle += "<label style='text-align: center;' id='" + RatesDetails[index].rateGrouping + "Label'>" + RatesDetails[index].rateGrouping + "</label>";
+            vehicle += "<select id='" + RatesDetails[index].rateGrouping + "Select'>";
+            vehicle += "<option value='" + RatesDetails[index].lexo + "' >" + RatesDetails[index].word + "</option >";
+            $('#VehicleType').append(vehicle);
+        }
+        else {
+            vehicle += "<option value='" + RatesDetails[index].lexo + "' >" + RatesDetails[index].word + "</option >";
+            $('#VehicleTypeSelect').append(vehicle);
+        }
+    }
+}
+function UpdateCache() {
+    $.post('https://www.igli-developing.com:44344/api/quotes/update', { key: 'Hell Yeah' }).done(function (data) {
+    })
 }

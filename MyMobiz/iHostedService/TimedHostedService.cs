@@ -1,4 +1,5 @@
 ﻿using LoggerService;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,15 +35,17 @@ namespace MyMobiz.iHostedService
             GetNextMidnight().Subtract(DateTime.Now), TimeSpan.FromDays(1));
             return Task.CompletedTask;
         }
-        private void DoWork(object state)
+        public void DoWork(object state)
         {
             using(var scope = _scopeFactory.CreateScope())
             {
                 _logger.LogInfo("Updating cache");
                 //Gets Context from ScopeFactory.
                 var _context= scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
+                //Update NofQuotes in ServiceRates
+                _context.Database.ExecuteSqlRaw("update servicerates set nquotes= (select count('vernum') from quotes where quotes.vernum = servicerates.vernum);");
                 //Checks if Services exist in Cache and Removes them.
-                if(_cache.Get("Services")!=null)
+                if (_cache.Get("Services")!=null)
                 _cache.Remove("Services");
                 //Gets all Services with their respective WebReferers, RateCategories, Servicerates, RatesDetails and Rate Targets.
                 var services = _context.Services.Where(sv => sv.Tsd > DateTime.Now || sv.Tsd == null).Select(s => new
@@ -52,16 +55,16 @@ namespace MyMobiz.iHostedService
                     ServiceName = s.ServiceName,
                     Webreferers = s.Webreferers,
                     Ratecategories = s.Ratecategories,
-                    Servicerates = s.Servicerates.Where(sr=>sr.Locked==false && (sr.Tsd > DateTime.Now || sr.Tsd == null)).Select(sr=>new
+                    Servicerates = s.Servicerates.Where(sr=>sr.Tsd > DateTime.Now || sr.Tsd == null).Select(sr=>new
                     {
                         VerNum=sr.VerNum,
                         EurKm=sr.EurKm,
                         EurMinDrive=sr.EurMinDrive,
                         EurMinimum= sr.EurMinimum,
                         EurMinWait=sr.EurMinWait,
-                        Lexo=sr.Lexo,
-                        NQuotes=sr.NQuotes,
                         MaxPax=sr.MaxPax,
+                        AppDate=sr.AppDate,
+                        EndDate=sr.EndDate,
                         Ratedetails = sr.Ratedetails.Where(rd => rd.Tsd > DateTime.Now || rd.Tsd == null).Select(rd=>new
                         {
                             Id=rd.Id,
