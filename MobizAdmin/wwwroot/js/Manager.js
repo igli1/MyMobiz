@@ -278,7 +278,7 @@ function DeleteRateDetails(val) {
         }
     }).then(function (){
         $.amaran({
-            'message': "Removing Rate Detail with Category: '" + RatesDetails[index].lexo + "' and RateDetail id: " + RatesDetails[index].ratesDetails[0].id,
+            'message': "Rate Detail Deleted",
             'position': 'top right'
         });});
     DeleteVariables(index);
@@ -317,7 +317,7 @@ function CreateRatesDetails(val) {
             AddVariables(GetRateDetailsIndex(x.id));
         }).then(function () {
             $.amaran({
-                'message': "Creating New Rate Detail with Category: '" + RatesCategories[index].word + "' and VerNum: " + ServiceRate.verNum,
+                'message': "Rate Detail Created",
                 'position': 'top right'
             });
         });
