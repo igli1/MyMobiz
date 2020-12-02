@@ -1,0 +1,34 @@
+﻿@model MobizAdmin.Data.Webreferers
+
+@{
+    ViewData["Title"] = "CreateWebReferers";
+}
+
+<h1>CreateWebReferers</h1>
+
+<h4>Webreferers</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateWebReferers">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="ServiceId" class="control-label"></label>
+                <input asp-for="ServiceId" value="@ViewData["ServiceId"]" readonly class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Referer" class="control-label"></label>
+                <input asp-for="Referer" class="form-control" />
+                <span asp-validation-for="Referer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="WebReferers" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Back to List</a>
+</div>
+

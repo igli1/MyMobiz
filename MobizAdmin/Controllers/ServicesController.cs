@@ -177,5 +177,94 @@ namespace MobizAdmin.Controllers
             await _context.Database.ExecuteSqlRawAsync("Update ratecategories set tsd = now() where id = '" + Id + "'");
             return RedirectToAction("RateCategories", new { ServiceId = ServiceId, ServiceName = ServiceName });
         }
+        [Authorize] //creates a new rate grouping
+        public IActionResult ServiceLanguages(string ServiceId, string ServiceName)
+        {
+                var langs =  _context.Servicelangs.Where(e => e.ServiceId == ServiceId).Select(e => new
+             {
+                 Id = e.Id,
+                 ServiceId = e.ServiceId,
+                 Lang= e.Lang,
+                 Word = e.LangNavigation.Word
+             });
+            ViewData["ServiceName"] = ServiceName;
+            ViewData["ServiceId"] = ServiceId;
+            return View(JsonConvert.DeserializeObject<List<DTServiceLanguages>>(JsonConvert.SerializeObject(langs)));
+        }
+        [Authorize] //creates a new rate grouping
+        public IActionResult CreateServiceLanguage(string ServiceId, string ServiceName)
+        {
+            ViewData["ServiceId"] = ServiceId;
+            ViewData["ServiceName"] = ServiceName;
+            ViewBag.Languages = new SelectList(_context.Langs.Where(e=>!_context.Servicelangs.Any(sl=> sl.ServiceId == ServiceId && sl.Lang==e.Lang)).ToDictionary(e => e.Lang, e => e.Word), "Key", "Value");
+            return View();
+        }
+        [HttpPost]
+        [Authorize] //creates a new rate grouping
+        public async Task<JsonResult> CreateServiceLanguage(DTServiceLanguages serviceLangs, string ServiceName)
+        {
+            System.Diagnostics.Debug.WriteLine(JsonConvert.SerializeObject(serviceLangs));
+            System.Diagnostics.Debug.WriteLine(JsonConvert.SerializeObject(ServiceName));
+            if (serviceLangs.Existing == true)
+            {
+                await _context.Servicelangs.AddAsync(new Servicelangs(){
+                    ServiceId= serviceLangs.ServiceId,
+                    Lang= serviceLangs.Lang
+                });
+                await _context.SaveChangesAsync();
+            }
+            else if(serviceLangs.Existing == false)
+            {
+                await _context.Langs.AddAsync(new Langs()
+                {
+                    Lang = serviceLangs.Lang,
+                    Word = serviceLangs.Word
+                });
+                await _context.Servicelangs.AddAsync(new Servicelangs()
+                {
+                    ServiceId = serviceLangs.ServiceId,
+                    Lang = serviceLangs.Lang
+                });
+                await _context.SaveChangesAsync();
+            }
+            return Json(new { serviceLangs.ServiceId, ServiceName });
+        }
+        [Authorize] //
+        public IActionResult WebReferers(string ServiceId, string ServiceName)
+        {
+            ViewData["ServiceName"] = ServiceName;
+            ViewData["ServiceId"] = ServiceId;
+            return View(_context.Webreferers.Where(e=>e.ServiceId==ServiceId));
+        }
+        [Authorize] //
+        public IActionResult CreateWebReferers(string ServiceId, string ServiceName)
+        {
+            ViewData["ServiceName"] = ServiceName;
+            ViewData["ServiceId"] = ServiceId;
+            return View();
+        }
+        [HttpPost]
+        [Authorize] //
+        public async Task<IActionResult> CreateWebReferers(Webreferers webReferer, string ServiceName)
+        {
+            await _context.Webreferers.AddAsync(webReferer);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("WebReferers", new { webReferer.ServiceId,ServiceName });
+        }
+        [Authorize] //
+        public async Task<IActionResult> EditWebReferer(int Id, string ServiceId, string ServiceName)
+        {
+            ViewData["ServiceName"] = ServiceName;
+            ViewData["ServiceId"] = ServiceId;
+            return View(await _context.Webreferers.FirstOrDefaultAsync(e => e.Id == Id));
+        }
+        [HttpPost]
+        [Authorize] //
+        public async Task<IActionResult> EditWebReferer(Webreferers webReferer, string ServiceName)
+        {
+            _context.Webreferers.Update(webReferer);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("WebReferers", new { webReferer.ServiceId, ServiceName });
+        }
     }
 }

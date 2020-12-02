@@ -56,6 +56,10 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
                 <input readonly id="verNum" size="1" />
             </span>
             <span style="float:left;margin-right:20px;">
+                <label>Service Rate Name</label>
+                <input id="serviceRateLexo" onchange="UpdateServiceRateLexo(this)"/>
+            </span>
+            <span style="float:left;margin-right:20px;">
                 <label>Locked</label>
                 <input type="checkbox" style="display: none;" id="locked" name="locked" onchange="UpdateLocked()" size="1" />
                 <label for="locked" class="imgLocked"><img></label>
@@ -65,12 +69,8 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
                 <input readonly id="nQuotes" size="1" />
             </span>
             <span style="float:left;margin-right:20px;">
-                <label>Duplicate:</label>
-                <input type="button" onclick="DuplicateVernum()" id="DuplicateVerNum" value="Duplicate VerNum" />
-            </span>
-            <span style="float:left;margin-right:20px;">
-                <label>Duplicate for Other Service:</label>
-                <input type="button" onclick="DuplicateVerNumOtherServiceModal()" id="DuplicateVerNum" value="Duplicate VerNum" />
+                <label>Duplicate VerNum:</label>
+                <input type="button" onclick="DuplicateVerNumModal()" id="DuplicateVerNum" value="Duplicate" />
             </span>
         </div>
     </div>
@@ -143,48 +143,48 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
         <h4>@MobizAdmin.Resources.Create.Create.Defaults</h4>
         <div name="EurKm" id="EurKm">
             <label>@MobizAdmin.Resources.Create.Create.EurKm:</label>
-            <input size="1" id="EurKmOp" maxlength="1" onkeypress="return blockSpecialChar(event)" onchange="InsertRateTargets(this)" name="Op" />
-            <input size="1" id="EurKmFigure" name="Figure" onchange="InsertRateTargets(this)" type="number" />
+            <select size="1" id="EurKmOp" maxlength="1" onchange="InsertRateTargets(this)" name="Op" />
+            <input size="1" id="EurKmFigure" name="Figure" class="inputFigure" onchange="InsertRateTargets(this)" type="number" />
             <input size="1" id="EurKmDefault" onchange="UpdateDefaults(this)" name="Default" type="number" />
             <input type="checkbox" value="EurKm" name="EurKmCheckbox" class="chBox" onchange="RateTargetCheckBox(this.value)" id="EurKmCheckbox" />
             <label style="display:inline" for="EurKmCheckbox" class="imgLabel"><img></label>
         </div>
         <div name="EurMinDrive" id="EurMinDrive">
             <label>@MobizAdmin.Resources.Create.Create.EurMinDrive:</label>
-            <input size="1" id="EurMinDriveOp" maxlength="1" onkeypress="return blockSpecialChar(event)" onchange="InsertRateTargets(this)" name="Op" />
-            <input size="1" id="EurMinDriveFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
+            <select size="1" id="EurMinDriveOp" maxlength="1" onchange="InsertRateTargets(this)" name="Op" />
+            <input size="1" id="EurMinDriveFigure" class="inputFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
             <input size="1" id="EurMinDriveDefault" onchange="UpdateDefaults(this)" name="Default" type="number" />
             <input type="checkbox" value="EurMinDrive" name="EurMinDriveCheckbox" onchange="RateTargetCheckBox(this.value)" id="EurMinDriveCheckbox" />
             <label style="display:inline" for="EurMinDriveCheckbox" class="imgLabel"><img></label>
         </div>
         <div name="EurMinWait" id="EurMinWait">
             <label>@MobizAdmin.Resources.Create.Create.EurMinWait:</label>
-            <input size="1" id="EurMinWaitOp" maxlength="1" onkeypress="return blockSpecialChar(event)" onchange="InsertRateTargets(this)" name="Op" />
-            <input size="1" id="EurMinWaitFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
+            <select size="1" id="EurMinWaitOp" maxlength="1" onchange="InsertRateTargets(this)" name="Op" />
+            <input size="1" id="EurMinWaitFigure" class="inputFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
             <input size="1" id="EurMinWaitDefault" onchange="UpdateDefaults(this)" name="Default" type="number" />
             <input type="checkbox" value="EurMinWait" name="EurMinWaitCheckbox" onchange="RateTargetCheckBox(this.value)" id="EurMinWaitCheckbox" />
             <label style="display:inline" for="EurMinWaitCheckbox" class="imgLabel"><img></label>
         </div>
         <div name="EurMinimum" id="EurMinimum">
             <label>@MobizAdmin.Resources.Create.Create.EurMinimum:</label>
-            <input size="1" id="EurMinimumOp" maxlength="1" onkeypress="return blockSpecialChar(event)" onchange="InsertRateTargets(this)" name="Op" />
-            <input size="1" id="EurMinimumFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
+            <select size="1" id="EurMinimumOp" maxlength="1" onchange="InsertRateTargets(this)" name="Op" />
+            <input size="1" id="EurMinimumFigure" class="inputFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
             <input size="1" id="EurMinimumDefault" onchange="UpdateDefaults(this)" name="Default" type="number" />
             <input type="checkbox" value="EurMinimum" name="EurMinimumCheckbox" onchange="RateTargetCheckBox(this.value)" id="EurMinimumCheckbox" />
             <label style="display:inline" for="EurMinimumCheckbox" class="imgLabel"><img></label>
         </div>
         <div name="MaxPax" id="MaxPax">
             <label>@MobizAdmin.Resources.Create.Create.MaxPax:</label>
-            <input size="1" id="MaxPaxOp" maxlength="1" onkeypress="return blockSpecialChar(event)" onchange="InsertRateTargets(this)" name="Op" />
-            <input size="1" id="MaxPaxFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
+            <select size="1" id="MaxPaxOp" maxlength="1" onchange="InsertRateTargets(this)" name="Op" />
+            <input size="1" id="MaxPaxFigure" class="inputFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
             <input size="1" id="MaxPaxDefault" onchange="UpdateDefaults(this)" name="Default" type="number" />
             <input type="checkbox" value="MaxPax" name="MaxPaxCheckbox" onchange="RateTargetCheckBox(this.value)" id="MaxPaxCheckbox" />
             <label style="display:inline" for="MaxPaxCheckbox" class="imgLabel"><img></label>
         </div>
         <div name="TotalPrice" id="TotalPrice">
             <label>@MobizAdmin.Resources.Create.Create.Total:</label>
-            <input size="1" id="TotalPriceOp" maxlength="1" onkeypress="return blockSpecialChar(event)" onchange="InsertRateTargets(this)" name="Op" />
-            <input size="1" id="TotalPriceFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
+            <select size="1" id="TotalPriceOp" maxlength="1" onchange="InsertRateTargets(this)" name="Op" />
+            <input size="1" id="TotalPriceFigure" class="inputFigure" onchange="InsertRateTargets(this)" name="Figure" type="number" />
             <input type="checkbox" value="TotalPrice" name="TotalPriceCheckbox" onchange="RateTargetCheckBox(this.value)" id="TotalPriceCheckbox" />
             <label style="display:inline" for="TotalPriceCheckbox" class="imgLabel"><img></label>
         </div>

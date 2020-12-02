@@ -249,16 +249,6 @@ namespace MobizAdmin.Controllers
             return Json(rc);
         }
         [HttpPost]
-        [Authorize] //Duplicates VerNum with all the Rates Details and Rates Targets
-        public JsonResult DuplicateVerNum(Servicerates servicerates)
-        {
-            _context.Servicerates.Add(servicerates);
-            _context.SaveChanges();
-            dynamic query = new { verNum = servicerates.VerNum,
-                lexo = servicerates.Lexo };
-            return Json(query);
-        }
-        [HttpPost]
         [Authorize] //Updates Detail Conditions
         public JsonResult UpdateDetailConditions(string  condition, int id)
         {
@@ -312,80 +302,130 @@ namespace MobizAdmin.Controllers
             return null;
         }
         [Authorize]
-        public PartialViewResult DuplicateVerNumModal(int vernum)
+        public PartialViewResult DuplicateVerNumModal(int vernum, string serviceid)
         {
-            string ServiceId = _context.Servicerates.Find(vernum).ServiceId;
-            ViewData["ServiceId"] = ServiceId;
             ViewData["VerNum"] = vernum;
-            ViewBag.ServicesList = new SelectList(_context.Services.Where(e=> e.Id != ServiceId).ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value");
-            return PartialView("~/Views/ServicesManager/_DuplicateVerNumOtherService.cshtml");
+            ViewData["ServiceId"] = serviceid;
+            ViewBag.ServicesList = new SelectList(_context.Services.ToDictionary(e => e.Id, e => e.ServiceName), "Key", "Value", serviceid);
+            return PartialView("~/Views/ServicesManager/_DuplicateVerNum.cshtml");
         }
         [Authorize]
-        public async Task<JsonResult> DuplicateVerNumOtherService(DuplicateVernum dv)
+        public async Task<JsonResult> DuplicateVerNum(DuplicateVernum dv)
         {
-            Servicerates rate = await _context.Servicerates.FindAsync(dv.VerNum);
-            Servicerates duplicated=new Servicerates();
-            duplicated.AppDate = rate.AppDate;
-            duplicated.DefDate = rate.DefDate;
-            duplicated.EndDate = rate.EndDate;
-            duplicated.EurKm = rate.EurKm;
-            duplicated.EurMinDrive= rate.EurMinDrive;
-            duplicated.EurMinimum = rate.EurMinimum;
-            duplicated.EurMinWait = rate.EurMinWait;
-            duplicated.Lexo = rate.Lexo;
-            duplicated.ServiceId = dv.ServiceToDuplicateId;
-            await _context.AddAsync(duplicated);
-            await _context.SaveChangesAsync();
-            var RateCategories = await _context.Ratecategories.Where(rc =>  _context.Ratedetails.Any(rd => rd.Vernum == dv.VerNum && rc.Id == rd.CategoryId) && !_context.Ratecategories.Any(nrc=> nrc.ServiceId==dv.ServiceToDuplicateId && nrc.Lexo==rc.Lexo))
-                .Select(rc=>new
+            System.Diagnostics.Debug.WriteLine(JsonConvert.SerializeObject(dv));
+            var existing = false;
+            if (dv.ServiceId == dv.ServiceToDuplicateId)
+            {
+                var rate = await _context.Servicerates.Where(e=>e.VerNum==dv.VerNum).Select(sr=>new
                 {
-                    rc.Lexo,
-                    rc.RateGrouping,
-                    rc.CategoryConditions,
-                    ServiceId = dv.ServiceToDuplicateId,
-                    Ratedetails = rc.Ratedetails.Where(rd=> rd.Vernum == dv.VerNum && rc.Id == rd.CategoryId).Select(rd=> new
+                    AppDate=sr.AppDate,
+                    DefDate=sr.DefDate,
+                    EndDate=sr.EndDate,
+                    EurKm=sr.EurKm,
+                    EurMinDrive=sr.EurMinDrive,
+                    EurMinimum=sr.EurMinimum,
+                    EurMinWait=sr.EurMinWait,
+                    Lexo=sr.Lexo,
+                    MaxPax=sr.MaxPax,
+                    ServiceId=sr.ServiceId,
+                    Ratedetails=sr.Ratedetails.Select(rd=>new
                     {
-                        rd.DetailConditions,
-                        Vernum = duplicated.VerNum,
-                        Ratetargets=rd.Ratetargets.Select(rt => new
+                        CategoryId=rd.CategoryId,
+                        DetailConditions=rd.DetailConditions,
+                        Ratetargets = rd.Ratetargets.Select(rt => new
                         {
-                            rt.RateFigure,
-                            rt.RateOperator,
-                            rt.RateTarget
+                            RateFigure=rt.RateFigure,
+                            RateOperator=rt.RateOperator,
+                            RateTarget=rt.RateTarget
                         })
                     })
-                }).AsNoTracking().ToListAsync();
-            var RateDetails = await _context.Ratedetails.Where(rd => rd.Vernum == dv.VerNum && _context.Ratecategories.Any(rc=>rc.Id==rd.CategoryId && _context.Ratecategories.Any(nrc=>nrc.ServiceId==dv.ServiceToDuplicateId && nrc.Lexo==rc.Lexo))).Select(rd => new
-            {
-                CategoryId = _context.Ratecategories.FirstOrDefault(rc=>_context.Ratecategories.Any(nrc=>nrc.Id==rd.CategoryId && nrc.Lexo==rc.Lexo) && rc.ServiceId==dv.ServiceToDuplicateId).Id,
-                rd.DetailConditions,
-                Vernum = duplicated.VerNum,
-                Ratetargets = rd.Ratetargets.Select(rt => new
+                }).FirstOrDefaultAsync();
+                Servicerates duplicated = JsonConvert.DeserializeObject<Servicerates>(JsonConvert.SerializeObject(rate));
+                System.Diagnostics.Debug.WriteLine(JsonConvert.SerializeObject(rate));
+                await _context.Servicerates.AddAsync(duplicated);
+                await _context.SaveChangesAsync();
+                var dr = new
                 {
-                    rt.RateFigure,
-                    rt.RateOperator,
-                    rt.RateTarget
-                })
-            }).ToListAsync();
+                    serviceId = duplicated.ServiceId,
+                    verNum = duplicated.VerNum,
+                    existing = existing
+                };
+                return Json(dr);
+            }
+            else
+            {
+                Servicerates rate = await _context.Servicerates.FindAsync(dv.VerNum);
+                Servicerates duplicated = new Servicerates();
+                duplicated.AppDate = rate.AppDate;
+                duplicated.DefDate = rate.DefDate;
+                duplicated.EndDate = rate.EndDate;
+                duplicated.EurKm = rate.EurKm;
+                duplicated.EurMinDrive = rate.EurMinDrive;
+                duplicated.EurMinimum = rate.EurMinimum;
+                duplicated.EurMinWait = rate.EurMinWait;
+                duplicated.Lexo = rate.Lexo;
+                duplicated.ServiceId = dv.ServiceToDuplicateId;
 
-            if (RateCategories != null)
-            {
-                List<Ratecategories> rc = JsonConvert.DeserializeObject<List<Ratecategories>>(JsonConvert.SerializeObject(RateCategories));
-                await _context.AddRangeAsync(rc);
+                await _context.AddAsync(duplicated);
+                await _context.SaveChangesAsync();
+                var RateCategories = await _context.Ratecategories.Where(rc => _context.Ratedetails.Any(rd => rd.Vernum == dv.VerNum && rc.Id == rd.CategoryId) && !_context.Ratecategories.Any(nrc => nrc.ServiceId == dv.ServiceToDuplicateId && nrc.Lexo == rc.Lexo))
+                    .Select(rc => new
+                    {
+                        rc.Lexo,
+                        rc.RateGrouping,
+                        rc.CategoryConditions,
+                        ServiceId = dv.ServiceToDuplicateId,
+                        Ratedetails = rc.Ratedetails.Where(rd => rd.Vernum == dv.VerNum && rc.Id == rd.CategoryId).Select(rd => new
+                        {
+                            rd.DetailConditions,
+                            Vernum = duplicated.VerNum,
+                            Ratetargets = rd.Ratetargets.Select(rt => new
+                            {
+                                rt.RateFigure,
+                                rt.RateOperator,
+                                rt.RateTarget
+                            })
+                        })
+                    }).AsNoTracking().ToListAsync();
+                var RateDetails = await _context.Ratedetails.Where(rd => rd.Vernum == dv.VerNum && _context.Ratecategories.Any(rc => rc.Id == rd.CategoryId && _context.Ratecategories.Any(nrc => nrc.ServiceId == dv.ServiceToDuplicateId && nrc.Lexo == rc.Lexo))).Select(rd => new
+                {
+                    CategoryId = _context.Ratecategories.FirstOrDefault(rc => _context.Ratecategories.Any(nrc => nrc.Id == rd.CategoryId && nrc.Lexo == rc.Lexo) && rc.ServiceId == dv.ServiceToDuplicateId).Id,
+                    rd.DetailConditions,
+                    Vernum = duplicated.VerNum,
+                    Ratetargets = rd.Ratetargets.Select(rt => new
+                    {
+                        rt.RateFigure,
+                        rt.RateOperator,
+                        rt.RateTarget
+                    })
+                }).ToListAsync();
+
+                if (RateCategories != null)
+                {
+                    List<Ratecategories> rc = JsonConvert.DeserializeObject<List<Ratecategories>>(JsonConvert.SerializeObject(RateCategories));
+                    await _context.AddRangeAsync(rc);
+                }
+                if (RateDetails != null)
+                {
+                    List<Ratedetails> rd = JsonConvert.DeserializeObject<List<Ratedetails>>(JsonConvert.SerializeObject(RateDetails));
+                    await _context.AddRangeAsync(rd);
+                }
+                if (RateDetails != null || RateCategories != null)
+                    await _context.SaveChangesAsync();
+                var dr = new
+                {
+                    serviceId = duplicated.ServiceId,
+                    verNum = duplicated.VerNum,
+                    existing = existing
+                };
+                return Json(dr);
             }
-            if (RateDetails != null)
-            {
-                List<Ratedetails> rd = JsonConvert.DeserializeObject<List<Ratedetails>>(JsonConvert.SerializeObject(RateDetails));
-                await _context.AddRangeAsync(rd);
-            }
-            if (RateDetails != null || RateCategories != null)
-            await _context.SaveChangesAsync();
-            var dr = new
-            {
-                serviceId= duplicated.ServiceId,
-                verNum= duplicated.VerNum
-            };
-            return Json(dr);
+        }
+        [Authorize]
+        public JsonResult UpdateServiceRateLexo(int vernum, string Lexo)
+        {
+            _context.Database.ExecuteSqlRaw("UPDATE servicerates SET Lexo = '" + Lexo + "' WHERE vernum = " + vernum + ";");
+            return Json(Lexo);
         }
     }
 }

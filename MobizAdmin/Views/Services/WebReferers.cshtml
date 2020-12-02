@@ -1,0 +1,37 @@
+﻿@model IEnumerable<MobizAdmin.Data.Webreferers>
+
+@{
+    ViewData["Title"] = "WebReferers";
+}
+
+<h1>WebReferers</h1>
+
+<p>
+    <a asp-action="CreateWebReferers" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Create New</a>
+    <h4>@MobizAdmin.Resources.Services.ServicesText.Service_Name: <u>@ViewData["ServiceName"]</u></h4>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Referer)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Referer)
+            </td>
+            <td>
+                <a asp-action="EditWebReferer" asp-route-id="@item.Id" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Edit</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<div>
+    <a asp-action="ServicesList">@MobizAdmin.Resources.Services.ServicesText.Back_to_List</a>
+</div>

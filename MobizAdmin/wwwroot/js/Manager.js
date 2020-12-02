@@ -3,6 +3,19 @@ var RatesDetails = [];
 var SelectedRateDetail;
 var ServiceRate = null;
 var TargetProperty = null;
+//Adds Operators to Op DropDown
+$(document).ready(async function () {
+    $('#Defaults').find('select').each(function () {
+        var options;
+        options += '<option value=""></option>';
+        options += '<option value="*"> * </option>';
+        options += '<option value="="> = </option>';
+        options += '<option value="+"> + </option>';
+        options += '<option value="-"> - </option>';
+        options += '<option value="%"> % </option>';
+        $('#' + this.attributes.id.nodeValue).append(options);
+    });
+});
 async function FetchCall(url, data) {
     const response = await fetch(url, {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
@@ -96,8 +109,8 @@ function ServiceRateSelected(val) {
                 }
                 else
                     $('#endDate').css("color", "black");
-
                 $('#verNum').val(ServiceRate.verNum);
+                $('#serviceRateLexo').val(ServiceRate.lexo);
                 $('#EurKmDefault').val(ServiceRate.eurKm);
                 $('#EurMinDriveDefault').val(ServiceRate.eurMinDrive);
                 $('#EurMinWaitDefault').val(ServiceRate.eurMinWait);
@@ -218,13 +231,14 @@ function AddToRatesDetailsTable(data) {
         if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
             rows += "<td style='padding-left: 10px;'></td>";
         else
-            rows += "<td style='padding-left: 10px;'><label class='arrow down' onclick='DeleteRateDetails(this)' id='" + data[i].id + "'></label></td>";
+            rows += "<td style='padding-left: 10px;'><label class='arrow ArrowDown' onclick='DeleteRateDetails(this)' id='" + data[i].id + "'></label></td>";
+
         if ($('#ServiceLanguageSelect').find(":selected").val()!=-1 )
             rows += "<td style='padding-left: 30px;' ><input  class='InputNoBorder' onChange='UpdateLexo(this)' value='" + data[i].word + "' id='" + data[i].id + "'/></td>";
         else
             rows += "<td style='padding-left: 30px;'>"+ data[i].word +"</td>"
         rows += "<td><label>" + data[i].rateGrouping + "</label></td>";
-        rows += "<td><label class='arrow right' onclick='RateDetailSelected(this)' id='selected" + data[i].id + "' name='Arrow'></label></td>";
+        rows += "<td><label class='arrow' onclick='RateDetailSelected(this)' id='selected" + data[i].id + "' name='Arrow'></label></td>";
         rows += "<td><img id='rt" + data[i].id + "' name='Img' height='35px' width='35px' src='../Images/rate-icon.jpg' onclick='RateDetailSelected(this)'/></td>"
         rows += "</tr>";
     }
@@ -232,6 +246,7 @@ function AddToRatesDetailsTable(data) {
     HasRateTargets();
     if (SelectedRateDetail != null && data != null) {
         $("tr[id ='tr" + SelectedRateDetail + "']").addClass('rdSelected');
+        $("#" + SelectedRateDetail).addClass('rdBtnSelected');
     }
 }
 //Adds data to Rate Categories Table. data = RatesCategories Array
@@ -245,7 +260,7 @@ function AddToRatesCategoriesTable(data) {
         if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
             rows += "<td style='padding-left: 10px;'></td>";
         else
-            rows += "<td style='padding-left: 10px;'><label class='arrow up' width='10px'onclick='CreateRatesDetails(this)' id='" + data[i].id + "'></label></td>";
+            rows += "<td style='padding-left: 10px;'><label class='arrow ArrowUp' width='10px'onclick='CreateRatesDetails(this)' id='" + data[i].id + "'></label></td>";
         if ($('#ServiceLanguageSelect').find(":selected").val() != -1)
             rows += "<td style='padding-left: 30px;'><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data[i].word + "' id = '" + data[i].id + "' /></td > ";
         else
@@ -364,14 +379,9 @@ function RateDetailSelected(val) {
     DisplayTargets(index);
     $('#Conditions').val(RatesDetails[index].ratesDetails[0].detailConditions);
 }
-//Block special characters for Rate Operator
-function blockSpecialChar(event) {
-    var e = event.key;
-    return (e == '+' || e == '*' || e == '%' || e == '=' || e == '-');
-}
 // Empties Rate Targets in case Rate Detail is Removed or Other is Selected
 function EmptiesRateTargets() {
-    $('#Defaults').find('input, :checkbox').each(function () {
+    $('#Defaults').find('input, :checkbox, select').each(function () {
         if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).prop('checked', false);
         }
@@ -391,6 +401,7 @@ function EmptiesDefaults() {
     $('#appDate').val('');
     $('#endDate').val('');
     $('#verNum').val('');
+    $('#serviceRateLexo').val('');
 }
 //Displays Rate Targets for selected Rate Detail. index = Ratedetail index
 function DisplayTargets(index) {
@@ -462,6 +473,7 @@ function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
         if (ServiceRate.endDate >= new Date().toISOString('yyyy-MM-ddT')) {
             if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
+                UpdateCache();
                 var categories = [];
                 $('#Option').find('input, :checkbox').each(function () {
                     if (this.type == 'checkbox') {
@@ -726,55 +738,6 @@ function CreateRateCategorie() {
         }
     });
 }
-function DuplicateVernum() {
-    if (ServiceRate != null) {
-        var servicerate = {
-            serviceID: $('#ServiceId').val(),
-            lexo : ServiceRate.lexo,
-            locked : false,
-            appDate : ServiceRate.appDate,
-            defDate : ServiceRate.defDate,
-            endDate : ServiceRate.endDate,
-            eurKm : ServiceRate.eurKm,
-            eurMinDrive : ServiceRate.eurMinDrive,
-            eurMinimum : ServiceRate.eurMinimum,
-            eurMinWait : ServiceRate.eurMinWait,
-            maxPax : ServiceRate.maxPax,
-            ratedetails: newRateDetails()
-        }
-        $.post('DuplicateVerNum', servicerate).done(function (data) {
-            $('#ServiceRateSelect')
-                .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
-            $.amaran({
-                'message': 'Service Rate Duplicated',
-                'position': 'top right'
-            });
-        }).then(x => {
-            $('#ServiceRateSelect').val(x.verNum).change();
-        });   
-    }
-    else {
-        $.amaran({
-            'message': "Please Select Service Rate",
-            'position': 'top right'
-        });
-    }
-}
-function newRateDetails() {
-    var rd = [];
-    for (var i = 0; i < RatesDetails.length; i++) {
-        rd.push(RatesDetails[i].ratesDetails[0]);
-        rd[i]['categoryId'] = RatesDetails[i].id;
-    }
-    for (var i = 0; i < rd.length; i++) {
-        delete rd[i].id;
-        delete rd[i].vernum;
-        for (var j = 0; j < rd[i].rateTargets.length; j++) {
-            delete rd[i].rateTargets[j].id;
-        }
-    }
-    return rd;
-}
 function UpdateDetailConditions() {
     if (ServiceRate != null) {
         if (SelectedRateDetail != null) {
@@ -820,9 +783,10 @@ function UpdateLexo(val) {
         });
     });
 }
-function DuplicateVerNumOtherServiceModal() {
+function DuplicateVerNumModal() {
     if (ServiceRate != null) {
-        $.post('DuplicateVerNumModal', { vernum: ServiceRate.verNum }).done(function (data) {
+        var serviceid = $('#ServiceSelect').find(":selected").val();
+        $.post('DuplicateVerNumModal', { vernum: ServiceRate.verNum, serviceid: serviceid }).done(function (data) {
             $('#modal-placeholder').html(data);
             $('#modal-placeholder').find('.modal').modal('show');
         });
@@ -834,13 +798,20 @@ function DuplicateVerNumOtherServiceModal() {
         });
     }
 }
-function DuplicateVerNumOtherService() {
-    var dataToSend = $('#DuplicateVerNumOtherServiceModal').serialize();
-    $.post('DuplicateVerNumOtherService', dataToSend).done(function (data) {
+function DuplicateVerNum() {
+    var dataToSend = $('#DuplicateVerNumModal').serialize();
+    $.post('DuplicateVerNum', dataToSend).done(function (data) {
         $('#modal-placeholder').find('.modal').modal('hide');
         if (data != null) {
-            $('#ServiceSelect').val(data.serviceId).change();
-            setTimeout(() => { $('#ServiceRateSelect').val(data.verNum).change(); }, 1000);
+            if (data.existing == true) {
+                $('#ServiceRateSelect')
+                    .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
+                ('#ServiceRateSelect').val(data.verNum).change()
+            }
+            else {
+                $('#ServiceSelect').val(data.serviceId).change();
+                setTimeout(() => { $('#ServiceRateSelect').val(data.verNum).change(); }, 1000);
+            }
             $.amaran({
                 'message': 'Service Rate Duplicated',
                 'position': 'top right'
@@ -935,4 +906,28 @@ function UpdateCache() {
             });
         }
     })
+}
+// onChaange Update Service Rate Lexo. val = Lexo.
+function UpdateServiceRateLexo(val) {
+    if (ServiceRate != null) {
+        if (val.value.length != 0) {
+            $.post('UpdateServiceRateLexo', { VerNum: ServiceRate.verNum, Lexo: val.value }).done(function (data, status) {
+                if (data != null) {
+                    ServiceRate.lexo == data;
+                    $('select[id="ServiceRateSelect"]').find('option[value=' + ServiceRate.verNum + ']').text(ServiceRate.verNum + ' ' +data);
+                }
+            }).then(x => {
+                $.amaran({
+                    'message': 'Service Rate Name Updated',
+                    'position': 'top right'
+                });
+            });
+        }
+    }
+    else {
+        $.amaran({
+            'message': "Please Select Service Rate",
+            'position': 'top right'
+        });
+    }
 }

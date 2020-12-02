@@ -31,7 +31,15 @@ namespace MobizAdmin
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddDbContext<mymobiztestContext>(options =>
-                options.UseMySql(Configuration.GetConnectionString("DbTestConnection")));
+                options.UseMySql(Configuration.GetConnectionString("DbTestConnection"),
+                mySqlOptions =>
+                {
+                    mySqlOptions
+                    .EnableRetryOnFailure(
+                    maxRetryCount: 10,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+                }));
             services.AddLocalization(options => options.ResourcesPath = "Resources");
             services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
