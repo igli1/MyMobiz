@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
+using MyMobiz.ServicesCache;
 namespace MyMobiz.iHostedService
 {
     //IHostedService runs in parallel with NetCore Services.
@@ -20,6 +20,7 @@ namespace MyMobiz.iHostedService
         private IMemoryCache _cache;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILoggerManager _logger;
+        private ServicesUpdate _servicesUpdate;
         public TimedHostedService(IMemoryCache cache, IServiceScopeFactory scopeFactory, ILoggerManager logger)
         {
             _cache = cache;
@@ -39,44 +40,11 @@ namespace MyMobiz.iHostedService
         {
             using(var scope = _scopeFactory.CreateScope())
             {
-                _logger.LogInfo("Updating cache");
                 //Gets Context from ScopeFactory.
                 var _context= scope.ServiceProvider.GetRequiredService<mymobiztestContext>();
-                //Update NofQuotes in ServiceRates
-                _context.Database.ExecuteSqlRaw("update servicerates set nquotes= (select count('vernum') from quotes where quotes.vernum = servicerates.vernum);");
-                //Checks if Services exist in Cache and Removes them.
-                if (_cache.Get("Services")!=null)
-                _cache.Remove("Services");
-                //Gets all Services with their respective WebReferers, RateCategories, Servicerates, RatesDetails and Rate Targets.
-                var services = _context.Services.Where(sv => sv.Tsd > DateTime.Now || sv.Tsd == null).Select(s => new
-                {
-                    Id = s.Id,
-                    ApiKey = s.ApiKey,
-                    ServiceName = s.ServiceName,
-                    Webreferers = s.Webreferers,
-                    Ratecategories = s.Ratecategories,
-                    Servicerates = s.Servicerates.Where(sr=>sr.Tsd > DateTime.Now || sr.Tsd == null).Select(sr=>new
-                    {
-                        VerNum=sr.VerNum,
-                        EurKm=sr.EurKm,
-                        EurMinDrive=sr.EurMinDrive,
-                        EurMinimum= sr.EurMinimum,
-                        EurMinWait=sr.EurMinWait,
-                        MaxPax=sr.MaxPax,
-                        AppDate=sr.AppDate,
-                        EndDate=sr.EndDate,
-                        Ratedetails = sr.Ratedetails.Where(rd => rd.Tsd > DateTime.Now || rd.Tsd == null).Select(rd=>new
-                        {
-                            Id=rd.Id,
-                            CategoryId=rd.CategoryId,
-                            Ratetargets = rd.Ratetargets.Where(rt => rt.Tsd > DateTime.Now || rt.Tsd == null)
-                        })
-                    }),
-                }).ToList();
-                //Serializes 'Undefined type': 'services' and Deserializes them to a 'List': of 'Services'.
-                List <Services> s = JsonSerializer.Deserialize<List<Services>>(JsonSerializer.Serialize(services));
-                //Adds List of Services to Cache
-                _cache.Set("Services", s);
+                _servicesUpdate= new ServicesUpdate(_context, _cache, _logger);
+                _servicesUpdate.UpdateServicesCache();
+                _servicesUpdate.UpdateNofQuotes();    
             }
         }
         public Task StopAsync(CancellationToken stoppingToken)

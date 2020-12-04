@@ -18,6 +18,8 @@ using Newtonsoft.Json;
 using MyMobiz.iHostedService;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MyMobiz.ServicesCache;
+
 namespace MyMobiz.Controllers
 {
     [EnableCors("AllowAll")]
@@ -30,6 +32,7 @@ namespace MyMobiz.Controllers
         private IBackgroundQueue _queue;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
+        private ServicesUpdate _servicesUpdate;
         public QuotesController(mymobiztestContext context, IBackgroundQueue queue, IServiceScopeFactory scopeFactory, IMemoryCache cache, ILoggerManager logger)
         {
             _scopeFactory = scopeFactory;
@@ -262,13 +265,20 @@ namespace MyMobiz.Controllers
             return Ok(CalculatePriceAsync(dtCalculateQuote, rates));
         }
         [HttpPost]
-        [Route("update")]
-        public ActionResult<dynamic> UpdateCache()
+        [Route("updaterate")]
+        public ActionResult<dynamic> UpdateCacheForSinglerate(DTServiceRates rates)
         {
-            var update = new TimedHostedService(_cache, _scopeFactory, _logger);
-            update.DoWork(null);
-            update.Dispose();
-            return Ok();
+            _servicesUpdate = new ServicesUpdate(_context, _cache, _logger);
+            _servicesUpdate.UpdateServiceRateCache(rates.ServiceId, rates.VerNum);
+            return Ok("Cache Updated. Vernum: " + rates.VerNum);
+        }
+        [HttpPost]
+        [Route("update")]
+        public ActionResult<dynamic> UpdateCache(DTServiceRates rates)
+        {
+            _servicesUpdate = new ServicesUpdate(_context, _cache, _logger);
+            _servicesUpdate.UpdateServicesCache();
+            return Ok("Cache Updated");
         }
         private DTCalculate CalculateWithoutTargets(DTCalculateQuote dtCalculateQuote, dynamic rates)
         {

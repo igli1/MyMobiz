@@ -17,6 +17,9 @@
                 @MobizAdmin.Resources.Services.ServicesText.VerNum
             </th>
             <th>
+                @MobizAdmin.Resources.Services.ServicesText.Lexo
+            </th>
+            <th>
                 @MobizAdmin.Resources.Services.ServicesText.DefDate
             </th>
             <th>
@@ -44,9 +47,6 @@
                 @MobizAdmin.Resources.Services.ServicesText.Locked
             </th>
             <th>
-                @MobizAdmin.Resources.Services.ServicesText.Lexo
-            </th>
-            <th>
                 @MobizAdmin.Resources.Services.ServicesText.NQuotes
             </th>
             <th></th>
@@ -57,6 +57,9 @@
         <tr style="background-color: @(item.Tsd <= DateTime.Now ? "#F44336": "");">
             <td>
                 @Html.DisplayFor(modelItem => item.VerNum)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Lexo)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.DefDate)
@@ -86,20 +89,20 @@
                 @Html.DisplayFor(modelItem => item.Locked)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Lexo)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.NQuotes)
             </td>
             <td>
                 @if (item.Tsd <= DateTime.Now)
                 {
-                    <b>Expired</b>}
+                    <b>Disabled</b>}
                 else
                 {
                     <a asp-controller="ServicesManager" asp-action="ManagerServiceRateSelected" asp-route-VerNum="@item.VerNum">@MobizAdmin.Resources.Layout.Layout.Manager</a>
-                    <a asp-action="DeleteServiceRate" asp-route-VerNum="@item.VerNum" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]">Delete</a>
-                 }
+                    @if (item.NQuotes == 0)
+                    {
+                        <a asp-action="DeleteServiceRate" asp-route-VerNum="@item.VerNum" asp-route-ServiceId="@ViewData["ServiceId"]" asp-route-ServiceName="@ViewData["ServiceName"]"> | Disable</a>
+                    }
+                }
             </td>
         </tr>
 }

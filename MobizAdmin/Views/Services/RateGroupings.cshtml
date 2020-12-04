@@ -38,10 +38,10 @@
             </td>
             <td>
                 @if(item.Tsd <= DateTime.Now){
-                <b>Expired</b>
+                <b>Disabled</b>
                 }
                 else {
-                <a asp-action="DeleteRateGrouping" asp-route-RateGrouping="@item.RateGrouping">Delete</a>}
+                <a asp-action="DeleteRateGrouping" asp-route-RateGrouping="@item.RateGrouping">Disable</a>}
             </td>
         </tr>
 }

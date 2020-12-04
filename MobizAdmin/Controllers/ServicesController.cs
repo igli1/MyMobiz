@@ -20,9 +20,19 @@ namespace MobizAdmin.Controllers
             _context = context;
         }
         [Authorize] //return list of services
-        public IActionResult ServicesList()
+        public async Task<IActionResult> ServicesList()
         {
-            return View(_context.Services);
+            List<DTServicesList> services = JsonConvert.DeserializeObject<List<DTServicesList>>( JsonConvert.SerializeObject( await _context.Services.Select(s => new
+            {
+                s.Id,
+                s.ServiceName,
+                s.Tsd,
+                CountRates= s.Servicerates.Count,
+                CountCategories = s.Ratecategories.Count,
+                CountReferers = s.Webreferers.Count,
+                CountLanguages = s.Servicelangs.Count
+            }).ToListAsync()));
+            return View(services);
         }
         [Authorize] //return create service view
         public IActionResult CreateService()
@@ -86,38 +96,11 @@ namespace MobizAdmin.Controllers
             return View();
         }
         [Authorize] //return list of services
-        public IActionResult RateCategories(string ServiceId, string ServiceName)
+        public async Task<IActionResult> RateCategories(string ServiceId, string ServiceName)
         {
             ViewData["ServiceName"] = ServiceName;
-            var rc = _context.Ratecategories.Where(e => e.ServiceId == ServiceId).Select(rc => new
-            {
-                rc.Id,
-                rc.Lexo,
-                rc.CategoryConditions,
-                rc.RateGrouping,
-                rc.ServiceId,
-                rc.Tsd,
-                nOfQuotes = _context.Servicerates.Where(e => e.ServiceId == rc.ServiceId && _context.Ratedetails.Any(rd => rd.Vernum == e.VerNum && rd.CategoryId == rc.Id)).FirstOrDefault(e => e.NQuotes > 0).NQuotes,
-                locked = _context.Servicerates.Where(e => e.ServiceId == rc.ServiceId && _context.Ratedetails.Any(rd => rd.Vernum == e.VerNum && rd.CategoryId == rc.Id)).FirstOrDefault(e => e.Locked == true).Locked,
-            }).ToArray();
-            var rct = new List<RateCategoriesType>();
-            for(int i = 0; i < rc.Length; i++)
-            {
-                rct.Add(new RateCategoriesType
-                {
-                    Id = rc[i].Id,
-                    Lexo = rc[i].Lexo,
-                    CategoryConditions = rc[i].CategoryConditions,
-                    RateGrouping = rc[i].RateGrouping,
-                    ServiceId = rc[i].ServiceId,
-                    Tsd = rc[i].Tsd
-                });
-                if (rc[i].nOfQuotes > 0 || rc[i].locked == true)
-                    rct[i].Editable = false;
-                else
-                    rct[i].Editable = true;
-            }
-            return View(rct);
+            List<Ratecategories> rc = await _context.Ratecategories.Where(e => e.ServiceId == ServiceId).ToListAsync();
+            return View(rc);
         }
         [HttpPost]
         [Authorize] //creates new Rate Categorie
@@ -142,6 +125,14 @@ namespace MobizAdmin.Controllers
         public IActionResult CreateRateGrouping()
         {
             return View();
+        }
+        [HttpPost]
+        [Authorize] //return create service view
+        public async Task<IActionResult> CreateRateGrouping(Rategroupings rg)
+        {
+            await _context.Rategroupings.AddAsync(rg);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("RateGroupings");
         }
         [Authorize] //creates a new rate grouping
         public async Task<IActionResult> DeleteRateGrouping(string RateGrouping)

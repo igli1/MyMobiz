@@ -1,4 +1,4 @@
-﻿@model IEnumerable<MobizAdmin.Data.RateCategoriesType>
+﻿@model IEnumerable<MobizAdmin.Data.Ratecategories>
 
 @{
     ViewData["Title"] = "RatesCategoriesList";
@@ -12,6 +12,9 @@
 <table class="table">
     <thead>
         <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Lexo)
             </th>
@@ -29,7 +32,10 @@
     <tbody>
         @foreach (var item in Model)
         {
-        <tr style="background-color: @(item.Editable==false ? "gray":"") @(item.Tsd <= DateTime.Now ? "#F44336": "");">
+        <tr style="background-color: @(item.Tsd <= DateTime.Now ? "#F44336": "");">
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Lexo)
             </td>
@@ -43,16 +49,12 @@
             <td>
                 @if (item.Tsd <= DateTime.Now)
                 {
-                    <b>Expired</b>
-                }
-                else if (item.Editable == false)
-                {
-                    <b>Cannot Edit</b>
+                    <b>Disabled</b>
                 }
                 else
                 {
                     <a asp-action="RateCategorieDetails" asp-route-id="@item.Id" asp-route-ServiceName="@ViewData["ServiceName"]">Details</a>
-                    <a asp-action="DeleteRateCategorie" asp-route-Id="@item.Id" asp-route-ServiceId="@item.ServiceId" asp-route-ServiceName="@ViewData["ServiceName"]">Delete</a>
+                    <a asp-action="DeleteRateCategorie" asp-route-Id="@item.Id" asp-route-ServiceId="@item.ServiceId" asp-route-ServiceName="@ViewData["ServiceName"]"> | Disable</a>
                 }
             </td>
         </tr>

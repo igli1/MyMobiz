@@ -1,4 +1,4 @@
-﻿@model IEnumerable<MobizAdmin.Data.Services>
+﻿@model IEnumerable<MobizAdmin.Data.DTServicesList>
 
 @{
     ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Services_List;
@@ -37,10 +37,10 @@
             </td>
             <td>
                 <a asp-action="ServiceDetails" asp-route-ServiceId="@item.Id">@MobizAdmin.Resources.Services.ServicesText.Service_Details</a> |
-                <a asp-action="ServiceRates" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName">@MobizAdmin.Resources.Services.ServicesText.Service_Rates</a>
-                <a asp-action="RateCategories" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | @MobizAdmin.Resources.Create.Create.Rates_Categories</a>
-                <a asp-action="ServiceLanguages" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | Service Languages</a>
-                <a asp-action="WebReferers" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | Web Referers</a>
+                <a asp-action="ServiceRates" class="badged" data-count="@item.CountRates" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName">@MobizAdmin.Resources.Services.ServicesText.Service_Rates</a>
+                <a asp-action="RateCategories" class="badged" data-count="@item.CountCategories" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | @MobizAdmin.Resources.Create.Create.Rates_Categories</a>
+                <a asp-action="ServiceLanguages" class="badged" data-count="@item.CountLanguages" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | Service Languages</a>
+                <a asp-action="WebReferers" class="badged" data-count="@item.CountReferers" asp-route-ServiceId="@item.Id" asp-route-ServiceName="@item.ServiceName"> | Web Referers</a>
                 @if (item.Tsd > DateTime.Now || item.Tsd == null)
                 {<a asp-controller="ServicesManager" asp-action="ManagerServiceSelected" asp-route-ServiceId="@item.Id"> | @MobizAdmin.Resources.Layout.Layout.Manager</a>
             }

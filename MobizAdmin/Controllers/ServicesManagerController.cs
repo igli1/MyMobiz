@@ -96,27 +96,6 @@ namespace MobizAdmin.Controllers
                     })
                 })
             }).AsNoTracking().ToListAsync();
-            /*var query = await _context.Ratecategories.Where(rc => _context.Servicerates.Any(sr => sr.VerNum == vernum && rc.ServiceId == sr.ServiceId)).Select(rc => new
-            {
-                lexo = rc.Service.Servicelangs.FirstOrDefault(sl => sl.Id == langId).LangNavigation.Lexicons.FirstOrDefault(lx => lx.Lexo == rc.Lexo).Word == null ? null :
-                "hello",
-                id = rc.Id,
-                rateGrouping = rc.RateGrouping,
-                ratesDetails = rc.Ratedetails.Where(rd => rd.Vernum == vernum).Select(rd => new
-                {
-
-                    id = rd.Id,
-                    vernum = rd.Vernum,
-                    detailConditions = rd.DetailConditions,
-                    rateTargets = rd.Ratetargets.Select(rt => new
-                    {
-                        id = rt.Id,
-                        rateTarget = rt.RateTarget,
-                        rateFigure = rt.RateFigure,
-                        rateOperator = rt.RateOperator
-                    })
-                })
-            }).AsNoTracking().ToListAsync();*/
             return Json(query);
         }
         [HttpPost]
@@ -128,15 +107,12 @@ namespace MobizAdmin.Controllers
             return Json(await GetRateCategorie(ratesDetails.CategoryId, ratesDetails.Vernum, langId));
         }
         [Authorize]
-        public async Task<JsonResult> DeleteRateDetails(int rdId, int rcId, int langId)
+        public async Task<JsonResult> DeleteRateDetails(int rdId, int rcId, int langId, int verNum)
         {
-            Ratedetails rd = _context.Ratedetails.Find(rdId);
-            rd.Tsd = DateTime.Now;
-            _context.Attach(rd);
-            _context.Entry(rd).Property(p => p.Tsd).IsModified = true;
+            await _context.Database.ExecuteSqlRawAsync("UPDATE ratedetails SET tsd= NOW() WHERE id = " + rdId + ";");
             _context.Ratetargets.RemoveRange(await _context.Ratetargets.Where(e => e.RateDetailId == rdId).AsNoTracking().ToListAsync());
             await _context.SaveChangesAsync();
-            return Json(await GetRateCategorie(rcId, rd.Vernum, langId));
+            return Json(await GetRateCategorie(rcId, verNum, langId));
         }
         private async Task<dynamic> GetRateCategorie(int id, int verNum, int langId)
         {

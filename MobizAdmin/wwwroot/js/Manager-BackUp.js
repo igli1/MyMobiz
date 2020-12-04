@@ -33,7 +33,7 @@ async function FetchCall(url, data) {
     return response.json(); // parses JSON response into native JavaScript objects
 }
 //onChange #ServiceSelect When a Service is Selected. val = ServiceId
-async function ServiceSelected(val) {
+function ServiceSelected(val) {
     if (val != "") {
         var serviceName = $('#ServiceSelect').find(":selected").text();
         $('#ServiceId').val(val);
@@ -44,16 +44,16 @@ async function ServiceSelected(val) {
             ;
         $('#ServiceLanguageSelect').empty();
 
-        await ResetInServiceRateSelect(); //Resets Page
-        await EmptiesDefaults();
-        await GetServiceRates(val);
-        await GetServiceLanguages(val);
+        ResetInServiceRateSelect(); //Resets Page
+        EmptiesDefaults();
         ServiceRate = null;
+        GetServiceRates(val);
+        GetServiceLanguages(val);
     }
 }
 //Gets Service Languages for Selected Service. val = ServiceId.
-async function GetServiceLanguages(val) {
-    await $.post('GetServiceLanguages', { serviceId: val }).done(function (data) {
+function GetServiceLanguages(val) {
+    $.post('GetServiceLanguages', { serviceId: val }).done(function (data) {
         var options = '';
         for (var i = 0; i < data.length; i++) {
             options += '<option value=' + data[i].id + '>' + data[i].word + '</option>';
@@ -62,7 +62,7 @@ async function GetServiceLanguages(val) {
     });
 }
 //Resets Page If a new Service Rate Is Selected
-async function ResetInServiceRateSelect() {
+function ResetInServiceRateSelect() {
     SelectedRateDetail = null;
     $('#RatesDetails')
         .empty();
@@ -76,8 +76,8 @@ async function ResetInServiceRateSelect() {
     $('#endDate').val('').css("color", "black");
 }
 // Gets Service Rates and Fills the #ServiceRateSelect. val = ServiceId
-async function GetServiceRates(val) {
-    await $.post('GetServiceRates', { serviceId: val }).done(function (data) {
+function GetServiceRates(val) {
+    $.post('GetServiceRates', { serviceId: val }).done(function (data) {
         var options = '';
         for (var i = 0; i < data.length; i++) {
             options += '<option value=' + data[i].verNum + '>' + data[i].verNum + ' ' + data[i].lexo + '</option>';
@@ -86,10 +86,10 @@ async function GetServiceRates(val) {
     });
 }
 //onChange if a Service Rate is Selected. val = VerNum
-async function ServiceRateSelected(val) {
+function ServiceRateSelected(val) {
     if (val != "") {
-        await ResetInServiceRateSelect();
-        await $.post('GetServiceRateSelected', { vernum: val }).done(function (data) {
+        ResetInServiceRateSelect();
+        $.post('GetServiceRateSelected', { vernum: val }).done(function (data) {
             if (data != null) {
                 ServiceRate = data;
                 if (ServiceRate.defDate != null) {
@@ -126,7 +126,7 @@ async function ServiceRateSelected(val) {
         });
     }
 }
-async function AddDateTimePickUpAndOrder() {
+function AddDateTimePickUpAndOrder() {
     var date = new Date().toISOString('yyyy-MM-ddThh:mm:ss.SSS');
     var hour;
     var onehour;
@@ -150,7 +150,7 @@ async function AddDateTimePickUpAndOrder() {
     $('#DateTimePickUp').val(date);
 }
 // Checks if date is past, future or today in order to change coors. val = date
-async function CheckDate(val) {
+function CheckDate(val) {
     var isoDate = new Date(Date.now()).toISOString().split("T")[0];
     if (val < isoDate)
         return "red";
@@ -160,26 +160,26 @@ async function CheckDate(val) {
         return "orange";
 }
 // Lock Inputs if Service Rate is Locked or number of Quotes is > 0.
-async function LockedOrWithQuotes() {
-    await AddToRatesDetailsTable(RatesDetails);
-    await AddToRatesCategoriesTable(RatesCategories);
+function LockedOrWithQuotes() {
+    AddToRatesDetailsTable(RatesDetails);
+    AddToRatesCategoriesTable(RatesCategories);
     if (ServiceRate.nQuotes > 0) {
-        await EnableOrDisable(true);
+        EnableOrDisable(true);
         $('.bottompane').css("border-color", "red");
     }
     else if (ServiceRate.locked == true) {
-        await EnableOrDisable(true);
+        EnableOrDisable(true);
         $('.bottompane').css("border-color", "orange");
         $('#locked').attr("disabled", false);
     }
     else {
-        await EnableOrDisable(false);
+        EnableOrDisable(false);
         $('.bottompane').css("border-color", "gray");
         $('#locked').attr("disabled", false);
     }
 }
 // Enables or Disables Screen in case Service Rate is Locked or Has Quotes. val = boolean
-async function EnableOrDisable(val) {
+function EnableOrDisable(val) {
     $.amaran({
         'message': 'Editing: '+!val,
         'position': 'top right'
@@ -201,11 +201,11 @@ async function EnableOrDisable(val) {
     });
 }
 //Get Rates Categories, Rates Details and Rate Targets for Selected Service. val = VerNum.
-async function GetRcRdRt(val) {
+function GetRcRdRt(val) {
     RatesDetails = [];
     RatesCategories = [];
     var Lang = $('#ServiceLanguageSelect').find(":selected").val();
-    await $.post('GetRateDetailsAndCategories', { vernum: val, langId: Lang }).done(function (data) {
+    $.post('GetRateDetailsAndCategories', { vernum: val, langId: Lang }).done(function (data) {
         for (var i = 0; i < data.length; i++) {
             if (data[i].ratesDetails.length > 0) {
                 RatesDetails.push(data[i]);
@@ -220,7 +220,7 @@ async function GetRcRdRt(val) {
     });
 }
 //Adds data to Rates Details Table. data = RatesDetails Array
-async function AddToRatesDetailsTable(data) {
+function AddToRatesDetailsTable(data) {
     $('#nOfRateDetails').val(data.length);
     var Categorie = $('#RatesDetails').attr('data-Categorie');
     var Grouping = $('#RatesDetails').attr('data-Grouping');
@@ -250,7 +250,7 @@ async function AddToRatesDetailsTable(data) {
     }
 }
 //Adds data to Rate Categories Table. data = RatesCategories Array
-async function AddToRatesCategoriesTable(data) {
+function AddToRatesCategoriesTable(data) {
     var Categorie = $('#RatesCategories').attr('data-Categorie');
     var Grouping = $('#RatesCategories').attr('data-Grouping');
     $('#RatesCategories').html('');
@@ -271,7 +271,7 @@ async function AddToRatesCategoriesTable(data) {
     $('#RatesCategories').append(rows);
 }
 //Checks if Rate Detail has Rate Targets and Changes the selected button to blue and Counts them
-async function HasRateTargets() {
+function HasRateTargets() {
     for (var i = 0; i < RatesDetails.length; i++) {
         if (RatesDetails[i].ratesDetails[0].rateTargets.length > 0) {
             //$('#rt' + RatesDetails[i].id).attr('src', '../Images/rate-icon.jpg');
@@ -282,13 +282,12 @@ async function HasRateTargets() {
     }
 }
 //onClick Deletes Rate Details from database. val= CategoryId
-async function DeleteRateDetails(val) {
+function DeleteRateDetails(val) {
     if (SelectedRateDetail == val.id)
         Deselect();
-    var index = await GetRateDetailsIndex(val.id);
-    await DeleteVariables(index);
+    var index = GetRateDetailsIndex(val.id);
     var Lang = $('#ServiceLanguageSelect').find(":selected").val();
-    await $.post('DeleteRateDetails', { rdId: RatesDetails[index].ratesDetails[0].id, rcId: RatesDetails[index].id, langId: Lang, verNum: ServiceRate.verNum }).done(function (data) {
+    $.post('DeleteRateDetails', { rdId: RatesDetails[index].ratesDetails[0].id, rcId: RatesDetails[index].id, langId: Lang}).done(function (data) {
             if (data != null) {
                 RatesCategories.push(data);
                 RatesDetails.splice(index, 1);
@@ -300,13 +299,14 @@ async function DeleteRateDetails(val) {
             'message': "Rate Detail Deleted",
             'position': 'top right'
         });});
+    DeleteVariables(index);
 }
-async function Deselect() {
+function Deselect() {
     SelectedRateDetail = null;
     EmptiesRateTargets();
 }
 //onClick Creates a Rates Details. val = CategoryId.
-async function CreateRatesDetails(val) {
+function CreateRatesDetails(val) {
     if (ServiceRate == null) {
         $.amaran({
             'message': 'Please Select a Service Rate',
@@ -320,8 +320,7 @@ async function CreateRatesDetails(val) {
         });
     }
     else {
-        var index = await GetRateCategorieIndex(val.id);
-        var rdId; 
+        var index = GetRateCategorieIndex(val.id);
         var Lang = $('#ServiceLanguageSelect').find(":selected").val();
         var ratesDetails = {
             verNum: ServiceRate.verNum,
@@ -329,7 +328,7 @@ async function CreateRatesDetails(val) {
             lexo: RatesCategories[index].lexo,
             detailConditions: RatesCategories[index].detailConditions
         };
-        await $.post('CreateRateDetails', { ratesDetails: ratesDetails, langId: Lang} ).done(function (data) {
+        $.post('CreateRateDetails', { ratesDetails: ratesDetails, langId: Lang} ).done(function (data) {
             if (data != null) {
                 RatesDetails.push(data);
                 RatesCategories.splice(index, 1);
@@ -337,19 +336,17 @@ async function CreateRatesDetails(val) {
         }).then(x => {
             AddToRatesCategoriesTable(RatesCategories);
             AddToRatesDetailsTable(RatesDetails);
-            rdId = x.id;
-           
+            AddVariables(GetRateDetailsIndex(x.id));
         }).then(function () {
             $.amaran({
                 'message': "Rate Detail Created",
                 'position': 'top right'
             });
         });
-        await AddVariables(await GetRateDetailsIndex(rdId));
     }
 }
 //Gets Rates Details Index. val = CategoryId
-async function GetRateDetailsIndex(val) {
+function GetRateDetailsIndex(val) {
     for (var i = 0; i < RatesDetails.length; i++) {
         if (RatesDetails[i].id == val) {
             return i;
@@ -357,7 +354,7 @@ async function GetRateDetailsIndex(val) {
     }
 }
 //Gets Rates Category Index. val = CategoryId
-async function GetRateCategorieIndex(val) {
+function GetRateCategorieIndex(val) {
     for (var i = 0; i < RatesCategories.length; i++) {
         if (RatesCategories[i].id == val) {
             return i;
@@ -365,7 +362,7 @@ async function GetRateCategorieIndex(val) {
     }
 }
 //onClick Selects Rate Detail. val = RateCategory Id
-async function RateDetailSelected(val) {
+function RateDetailSelected(val) {
     var rdId;
     if (val.attributes.name.value =='Arrow')
         rdId = val.id.split('selected')[1];
@@ -376,10 +373,10 @@ async function RateDetailSelected(val) {
     }
     SelectedRateDetail = rdId;
     $("tr[id ='tr" + SelectedRateDetail + "']").addClass('rdSelected');
-    await HasRateTargets();
-    await EmptiesRateTargets();
-    var index = await GetRateDetailsIndex(SelectedRateDetail);
-    await DisplayTargets(index);
+    HasRateTargets();
+    EmptiesRateTargets();
+    var index = GetRateDetailsIndex(SelectedRateDetail);
+    DisplayTargets(index);
     $('#Conditions').val(RatesDetails[index].ratesDetails[0].detailConditions);
     if (ServiceRate.locked == false) {
         if (RatesDetails[index].rateGrouping == 'Discount' || RatesDetails[index].rateGrouping == 'Extra')
@@ -390,7 +387,7 @@ async function RateDetailSelected(val) {
     
 }
 // Empties Rate Targets in case Rate Detail is Removed or Other is Selected
-async function EmptiesRateTargets() {
+function EmptiesRateTargets() {
     $('#Defaults').find('input, :checkbox, select').each(function () {
         if (this.type == 'checkbox') {
             $('#' + this.attributes.id.nodeValue).prop('checked', false);
@@ -401,8 +398,8 @@ async function EmptiesRateTargets() {
     });
 }
 // Empties Defaults in case Service is Selected
-async function EmptiesDefaults() {
-    await $('#Defaults').find('input').each(function () {
+function EmptiesDefaults() {
+    $('#Defaults').find('input').each(function () {
         if (this.attributes.name.value == 'Default') {
             $('#' + this.attributes.id.nodeValue).val('');
         }
@@ -414,18 +411,18 @@ async function EmptiesDefaults() {
     $('#serviceRateLexo').val('');
 }
 //Displays Rate Targets for selected Rate Detail. index = Ratedetail index
-async function DisplayTargets(index) {
-    for (var i = 0; i < await RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
+function DisplayTargets(index) {
+    for (var i = 0; i < RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
         $('#' + RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget + 'Op').val(RatesDetails[index].ratesDetails[0].rateTargets[i].rateOperator);
         $('#' + RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget + 'Figure').val(RatesDetails[index].ratesDetails[0].rateTargets[i].rateFigure);
         $('#' + RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget + 'Checkbox').prop('checked', true);
     }
 }
 //If Defaults Checkbox is clicked. val = Rate Target
-async function RateTargetCheckBox(val) {
+function RateTargetCheckBox(val) {
     if (ServiceRate.locked == false && ServiceRate.nQuotes == 0) {
         if (!$('#' + val + 'Checkbox').is(':checked')) {
-            await DeleteRateTargets(val);
+            DeleteRateTargets(val);
         }
         else {
 
@@ -434,14 +431,14 @@ async function RateTargetCheckBox(val) {
     }
 }
 //Creates Rate Target for selected Rate Detail. val = Rate Target, index Rate Detail index
-async function CreateRateTargets(val, index) {
+function CreateRateTargets(val, index) {
     var rt = {
         RateDetailId: RatesDetails[index].ratesDetails[0].id,
         RateTarget: val,
         RateFigure: $('#' + val + 'Figure').val(),
         RateOperator: $('#' + val + 'Op').val()
     };
-    await $.post('CreateRateTarget', rt).done(function (data) {
+    $.post('CreateRateTarget', rt).done(function (data) {
         if (data != null) {
             RatesDetails[index].ratesDetails[0].rateTargets.push(data);
             $('#' + val + 'Checkbox').prop('checked', true);
@@ -455,7 +452,7 @@ async function CreateRateTargets(val, index) {
     });
 }
 //Gets the Rate Target Index. rdIndex = RateDetail Index, val = Rate Target
-async function RateTargetIndex(rdIndex, val) {
+function RateTargetIndex(rdIndex, val) {
     for (var i = 0; i < RatesDetails[rdIndex].ratesDetails[0].rateTargets.length; i++) {
         if (RatesDetails[rdIndex].ratesDetails[0].rateTargets[i].rateTarget == val) {
             return i;
@@ -463,11 +460,11 @@ async function RateTargetIndex(rdIndex, val) {
     }
 }
 //Deletes Rate Target for selected Rate Detail. val = Rate Target
-async function DeleteRateTargets(val) {
-    var index = await GetRateDetailsIndex(SelectedRateDetail);
-    var rtIndex = await RateTargetIndex(index, val);
+function DeleteRateTargets(val) {
+    var index = GetRateDetailsIndex(SelectedRateDetail);
+    var rtIndex = RateTargetIndex(index, val);
     var id = RatesDetails[index].ratesDetails[0].rateTargets[rtIndex].id;
-    await $.post('DeleteRateTargets', { id: id }).done(function (data) {
+    $.post('DeleteRateTargets', { id: id }).done(function (data) {
         RatesDetails[index].ratesDetails[0].rateTargets.splice(rtIndex, 1);
         $('#' + val + 'Op').val('');
         $('#' + val + 'Figure').val('');
@@ -479,13 +476,13 @@ async function DeleteRateTargets(val) {
         });
     });
 }
-async function SimulateTrip() {
+function SimulateTrip() {
     if (!$('#ServiceSelect').val() == '') {
         if (ServiceRate.endDate >= new Date().toISOString('yyyy-MM-ddT')) {
             if ($('#DateTimePickUp').val() != '' && $('#Pax').val() != '' && $('#Kms').val() != '' && $('#Drive').val() != '' && $('#Wait').val() != '') {
-                await UpdateCacheForSingeRate();
+                UpdateCacheForSingeRate();
                 var categories = [];
-                await $('#OptionDiv').find('input, :checkbox').each(function () {
+                $('#Option').find('input, :checkbox').each(function () {
                     if (this.type == 'checkbox') {
                         var option = false;
                         if ($('#' + this.attributes.id.nodeValue).is(':checked'))
@@ -493,16 +490,10 @@ async function SimulateTrip() {
                         categories.push({ Category: this.attributes.id.nodeValue, Option: option });
                     }
                 });
-                await $('#VehicleTypeDiv').find('select').each(function () {
+                $('#VehicleType').find('select').each(function () {
                     if (this.type == 'select-one')
                         categories.push({ Category: $('#' + this.attributes.id.nodeValue).find(":selected").val() });
 
-                });
-                await $('#InputDiv').find('input').each(function () {
-                    if (this.type == 'input') {
-                        if ($('#' + this.attributes.id.nodeValue).val()!="")
-                            categories.push({ Category: this.attributes.id.nodeValue, Input: $('#' + this.attributes.id.nodeValue).val() });
-                    }
                 });
                 var dtCalculateQuote = {
                     ServiceID: $('#ServiceSelect').val(),
@@ -515,7 +506,7 @@ async function SimulateTrip() {
                     WaitTime: parseInt($('#Wait').val()),
                 };
                 //Rest Api Request...
-                await FetchCall('https://www.igli-developing.com:44344/api/quotes/simulate', dtCalculateQuote)
+                FetchCall('https://www.igli-developing.com:44344/api/quotes/simulate', dtCalculateQuote)
                     .then(data => {
                         $('#Price').val(data.price);
                     });
@@ -541,12 +532,12 @@ async function SimulateTrip() {
         });
     }
 }
-// Update Defaults. val = default
-async function UpdateDefaults(val) {
+// onKeyUp Update Defaults. val = default
+function UpdateDefaults(val) {
     if (ServiceRate != null) {
         if (val.value.length != 0) {
             var property = val.id.slice(0, val.id.length - 7);
-            await $.post('UpdateDefaults', {vernum: ServiceRate.verNum, property: property, value: parseFloat(val.value) }).done(function (data) {
+            $.post('UpdateDefaults', {vernum: ServiceRate.verNum, property: property, value: parseFloat(val.value) }).done(function (data) {
                 $.amaran({
                     'message': data,
                     'position': 'top right'
@@ -562,7 +553,7 @@ async function UpdateDefaults(val) {
     }
 }
 // onKeyUp Insert or Update Rate Targets. val = Rate Target
-async function InsertRateTargets(val) {
+function InsertRateTargets(val) {
     if (ServiceRate != null) {
         if (SelectedRateDetail != null) {
             var property = val.id.slice(0, val.id.length - val.name.length);
@@ -570,12 +561,12 @@ async function InsertRateTargets(val) {
                 if (TargetProperty == property) {
                     $.delay(1000);
                 }
-                var index = await GetRateDetailsIndex(SelectedRateDetail); //Rate Detail Index
+                var index = GetRateDetailsIndex(SelectedRateDetail); //Rate Detail Index
                 var exists = false;
                 var rtId; // Rate Target Id
                 var rtIndex; // Rate Target Index
 
-                for (var i = 0; i < await RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
+                for (var i = 0; i < RatesDetails[index].ratesDetails[0].rateTargets.length; i++) {
                     if (RatesDetails[index].ratesDetails[0].rateTargets[i].rateTarget == property) {
                         exists = true;
                         rtId = RatesDetails[index].ratesDetails[0].rateTargets[i].id;
@@ -584,7 +575,7 @@ async function InsertRateTargets(val) {
                     }
                 }
                 if (exists == false) { //Create Rate Target
-                    await CreateRateTargets(property, index);     
+                    CreateRateTargets(property, index);     
                 }
                 else { //Update Rate Target
                     var rt = {
@@ -593,7 +584,7 @@ async function InsertRateTargets(val) {
                         RateFigure: $('#' + property + 'Figure').val(),
                         RateOperator: $('#' + property + 'Op').val()
                     };
-                    await $.post('UpdateRateTarget', rt).done(function (data) {
+                    $.post('UpdateRateTarget', rt).done(function (data) {
                         RatesDetails[index].ratesDetails[0].rateTargets.slice(rtIndex, 1);
                         RatesDetails[index].ratesDetails[0].rateTargets.push(data);
                     }).then(x => {
@@ -620,20 +611,20 @@ async function InsertRateTargets(val) {
     }
 }
 // onChange Update Date Time for Selected Service. val = dateTime
-async function UpdateDateTime(val) {
+function UpdateDateTime(val) {
     if (ServiceRate != null) {
         var updateDT = {
             value: val.value,
             property: val.id,
             vernum: ServiceRate.verNum
         };
-        await $.post('UpdateDateTime', { value: val.value, property: val.id, vernum: ServiceRate.verNum }).done(function (data) {
+        $.post('UpdateDateTime', { value: val.value, property: val.id, vernum: ServiceRate.verNum }).done(function (data) {
             $.amaran({
                 'message': data,
                 'position': 'top right'
             });
         }).then(x => {
-            $('#' + val.id).css("color",  CheckDate(val.value));
+            $('#' + val.id).css("color", CheckDate(val.value));
         });
     }
     else {
@@ -644,7 +635,7 @@ async function UpdateDateTime(val) {
     }
 }
 //onChange Update Lock State for Selected Service Rate
-async function UpdateLocked() {
+function UpdateLocked() {
     if (ServiceRate != null) {
         if ($('#locked').is(':checked'))
             ServiceRate.locked = true;
@@ -654,7 +645,7 @@ async function UpdateLocked() {
             vernum: ServiceRate.verNum,
             locked: ServiceRate.locked
         };
-        await $.post('UpdateLocked', { vernum: ServiceRate.verNum, locked: ServiceRate.locked }).done(function (data) {
+        $.post('UpdateLocked', { vernum: ServiceRate.verNum, locked: ServiceRate.locked }).done(function (data) {
             $.amaran({
                 'message': data,
                 'position': 'top right'
@@ -670,17 +661,17 @@ async function UpdateLocked() {
         });
     }
 }
-async function CreateServiceModal() {
-    await $.get('CreateServiceModal').done(function (data) {
+function CreateServiceModal() {
+    $.get('CreateServiceModal').done(function (data) {
         // append HTML to document, find modal and show it
         $('#modal-placeholder').html(data);
         $('#modal-placeholder').find('.modal').modal('show');
     });
 }
-async function CreateService() {
+function CreateService() {
     var dataToSend = $('#ServiceModal').serialize();
     var actionUrl = $('#ServiceModal').attr('action');
-    await $.post(actionUrl, dataToSend).done(function (data) {
+    $.post(actionUrl, dataToSend).done(function (data) {
         $('#modal-placeholder').find('.modal').modal('hide');
         $('#ServiceSelect')
             .append('<option value="' + data.id + '">' + data.serviceName + '</option>');
@@ -690,10 +681,10 @@ async function CreateService() {
         });
     });
 }
-async function CreateServiceRateModal() {
+function CreateServiceRateModal() {
     if ($('#ServiceSelect').val() != "") {
         var Id = $('#ServiceId').val();
-        await $.post('CreateServiceRateModal', { serviceId: Id }).done(function (data) {
+        $.post('CreateServiceRateModal', { serviceId: Id }).done(function (data) {
             $('#modal-placeholder').html(data);
             $('#modal-placeholder').find('.modal').modal('show');
         });
@@ -705,9 +696,9 @@ async function CreateServiceRateModal() {
         });
     }
 }
-async function CreateServiceRate() {
+function CreateServiceRate() {
     var dataToSend = $('#ServiceRateModal').serialize();
-    await $.post('CreateServiceRate', dataToSend).done(function (data) {
+    $.post('CreateServiceRate', dataToSend).done(function (data) {
         $('#modal-placeholder').find('.modal').modal('hide');
         $('#ServiceRateSelect')
             .append('<option value="' + data.verNum + '">' + data.verNum + ' ' + data.lexo + '</option>');
@@ -717,10 +708,10 @@ async function CreateServiceRate() {
         });
     });
 }
-async function CreateRateCategorieModal() {
+function CreateRateCategorieModal() {
     if ($('#ServiceSelect').val() != "") {
         var Id = $('#ServiceId').val();
-        await $.post('CreateRateCategorieModal', { serviceId: Id }).done(function (data) {
+        $.post('CreateRateCategorieModal', { serviceId: Id }).done(function (data) {
             $('#modal-placeholder').html(data);
             $('#modal-placeholder').find('.modal').modal('show');
         });
@@ -732,20 +723,17 @@ async function CreateRateCategorieModal() {
         });
     }
 }
-async function CreateRateCategorie() {
+function CreateRateCategorie() {
     var dataToSend = $('#RateCategorieModal').serialize();
-    await $.post('CreateRateCategorie', dataToSend).done(function (data) {
+    $.post('CreateRateCategorie', dataToSend).done(function (data) {
         $('#modal-placeholder').find('.modal').modal('hide');
         if (ServiceRate != null) {
-            var rows = "<tr class='tr_hover' style='height: 40px;'>";
+            var rows = "<tr class='tr_hover'>";
             if (ServiceRate.locked == true || ServiceRate.nQuotes > 0)
-                rows += "<td style='padding-left: 10px;'></td>";
+                rows += "<td></td>";
             else
-                rows += "<td style='padding-left: 10px;'><label class='arrow ArrowUp' width='10px'onclick='CreateRatesDetails(this)' id='" + data.id + "'></label></td>";
-            if ($('#ServiceLanguageSelect').find(":selected").val() != -1)
-                rows += "<td style='padding-left: 30px;'><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data.lexo + "' id = '" + data.id + "' /></td > ";
-            else
-                rows += "<td style='padding-left: 30px;'>" + data.lexo + "</td>";
+                rows += "<td><button class='tableBtn' type='button' onclick='CreateRatesDetails(this.value)' value='" + data.id + "'>⇑</button></td>";
+            rows += "<td><input class='InputNoBorder' onChange = 'UpdateLexo(this)' value = '" + data.lexo + "' id = '" + data.id + "' /></td > ";
             rows += "<td>" + data.rateGrouping + "</td>";
             rows += "</tr>";
             $('#RatesCategories').append(rows);
@@ -757,11 +745,11 @@ async function CreateRateCategorie() {
         }
     });
 }
-async function UpdateDetailConditions() {
+function UpdateDetailConditions() {
     if (ServiceRate != null) {
         if (SelectedRateDetail != null) {
-            var index = await GetRateDetailsIndex(SelectedRateDetail); //Rate Detail Index
-            await $.post('UpdateDetailConditions', { condition: $('#Conditions').val(), id: RatesDetails[index].ratesDetails[0].id}).done(function (data) {
+            var index = GetRateDetailsIndex(SelectedRateDetail); //Rate Detail Index
+            $.post('UpdateDetailConditions', { condition: $('#Conditions').val(), id: RatesDetails[index].ratesDetails[0].id}).done(function (data) {
                 RatesDetails[index].ratesDetails[0].detailConditions = $('#Conditions').val();
             }).then(x => {
                 $.amaran({
@@ -784,28 +772,28 @@ async function UpdateDetailConditions() {
         });
     }
 }
-async function ServiceLanguageSelected(val) {
+function ServiceLanguageSelected(val) {
     if (val != '' && ServiceRate != null) {
         $('#RatesDetails')
             .empty();
         $('#RatesCategories')
             .empty();
-        await GetRcRdRt(ServiceRate.verNum);
+        GetRcRdRt(ServiceRate.verNum);
     }
 }
-async function UpdateLexo(val) {
+function UpdateLexo(val) {
     var Lang = $('#ServiceLanguageSelect').find(":selected").val();
-    await $.post('InsertWord', { id: val.id, value: val.value, langId: Lang }).done(function (data) {
+    $.post('InsertWord', { id: val.id, value: val.value, langId: Lang }).done(function (data) {
         $.amaran({
             'message': data,
             'position': 'top right'
         });
     });
 }
-async function DuplicateVerNumModal() {
+function DuplicateVerNumModal() {
     if (ServiceRate != null) {
         var serviceid = $('#ServiceSelect').find(":selected").val();
-        await $.post('DuplicateVerNumModal', { vernum: ServiceRate.verNum, serviceid: serviceid }).done(function (data) {
+        $.post('DuplicateVerNumModal', { vernum: ServiceRate.verNum, serviceid: serviceid }).done(function (data) {
             $('#modal-placeholder').html(data);
             $('#modal-placeholder').find('.modal').modal('show');
         });
@@ -817,9 +805,9 @@ async function DuplicateVerNumModal() {
         });
     }
 }
-async function DuplicateVerNum() {
+function DuplicateVerNum() {
     var dataToSend = $('#DuplicateVerNumModal').serialize();
-    await $.post('DuplicateVerNum', dataToSend).done(function (data) {
+    $.post('DuplicateVerNum', dataToSend).done(function (data) {
         $('#modal-placeholder').find('.modal').modal('hide');
         if (data != null) {
             if (data.existing == true) {
@@ -863,9 +851,13 @@ async function Variables() {
             vehicle += await InsertVehicles(vehicle, i);
         }
         else if (RatesDetails[i].rateGrouping == "Input") {
+            console.log(i);
             input += await InsertInput(i);
         }
     }
+    console.log(option);
+    console.log(vehicle);
+    console.log(input);
     if (option != null) 
         $('#OptionDiv').append(option);
     
@@ -920,7 +912,7 @@ async function AddVariables(index) {
     }
 }
 //Deletes variables in case rate detail is deleted. index = ratedetail index
-async function DeleteVariables(index) {
+function DeleteVariables(index) {
     if (RatesDetails[index].rateGrouping == "Option") {
         $('#' + RatesDetails[index].lexo + 'Option').remove();
     }
@@ -934,12 +926,12 @@ async function DeleteVariables(index) {
     else if (RatesDetails[index].rateGrouping == "Input")
         $('#' + RatesDetails[index].lexo + 'Div').remove();
 }
-async function UpdateCacheForSingeRate() {
+function UpdateCacheForSingeRate() {
     var rates = {
         ServiceId: $('#ServiceSelect').val(),
         VerNum: $('#ServiceRateSelect').val()
     };
-    await FetchCall('https://www.igli-developing.com:44344/api/quotes/updaterate', rates).then
+    FetchCall('https://www.igli-developing.com:44344/api/quotes/updaterate', rates).then
         (data => {
             $.amaran({
                 'message': data,
@@ -953,10 +945,10 @@ async function UpdateCacheForSingeRate() {
         });
 }
 // onChaange Update Service Rate Lexo. val = Lexo.
-async function UpdateServiceRateLexo(val) {
+function UpdateServiceRateLexo(val) {
     if (ServiceRate != null) {
         if (val.value.length != 0) {
-            await $.post('UpdateServiceRateLexo', { VerNum: ServiceRate.verNum, Lexo: val.value }).done(function (data, status) {
+            $.post('UpdateServiceRateLexo', { VerNum: ServiceRate.verNum, Lexo: val.value }).done(function (data, status) {
                 if (data != null) {
                     ServiceRate.lexo == data;
                     $('select[id="ServiceRateSelect"]').find('option[value=' + ServiceRate.verNum + ']').text(ServiceRate.verNum + ' ' +data);
@@ -976,8 +968,8 @@ async function UpdateServiceRateLexo(val) {
         });
     }
 }
-async function UpdateCache() {
-    await $.post('https://www.igli-developing.com:44344/api/quotes/update').done(function (data, status) {
+function UpdateCache() {
+    $.post('https://www.igli-developing.com:44344/api/quotes/update').done(function (data, status) {
         if (status == "success") {
             $.amaran({
                 'message': "Cache Updated",

@@ -31,7 +31,7 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
         </div>
         <div class="form-group">
             <label class="control-label">Select Language</label>
-            <select id="ServiceLanguageSelect" style="width:100px;" onchange="ServiceLanguageSelected(this.value)">
+            <select id="ServiceLanguageSelect" style="width:120px;" onchange="ServiceLanguageSelected(this.value)">
             </select>
         </div>
         <div>
@@ -91,7 +91,7 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
     </div>
     <div class="middlepane col">
         <h4>@MobizAdmin.Resources.Create.Create.Conditions</h4>
-        <textarea class="form-control" id="Conditions" onchange="UpdateDetailConditions()"></textarea>
+        <textarea class="form-control" id="Conditions" readonly onchange="UpdateDetailConditions()"></textarea>
         <h4 class="control-label">@MobizAdmin.Resources.Create.Create.Variables</h4>
         <div id="Variables" name="Variables">
             <div>
@@ -118,16 +118,10 @@ ViewData["Title"] = MobizAdmin.Resources.Layout.Layout.Manager;
                 <label>@MobizAdmin.Resources.Create.Create.Pax</label>
                 <input type="number" id="Pax" />
             </div>
-            <div id="Option">
-
-            </div>
-            <br>
-            <div id="VehicleType">
-
-            </div>
-            <div>
-                <label>@MobizAdmin.Resources.Create.Create.Promo_Code</label>
-                <input id="Promo" />
+            <div id="VariablesInput">
+                <div id="OptionDiv"></div>
+                <div id="VehicleTypeDiv"></div>
+                <div id="InputDiv"></div>
             </div>
             <div>
                 <br />

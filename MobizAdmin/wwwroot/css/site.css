@@ -58,13 +58,14 @@ button.accept-policy {
 html {
     position: relative;
     min-height: 100%;
+    font-family: 'Roboto', sans-serif;
 }
 
 body {
     /* Margin bottom by footer height */
     margin-bottom: 60px;
+    font-family: 'Roboto', sans-serif;
 }
-
 .footer {
     position: absolute;
     bottom: 0;
@@ -185,4 +186,24 @@ input[type="checkbox"]:checked + .imgLabel img {
 }
 .inputFigure{
     width: 80px;
+}
+.badged::after {
+    content: attr(data-count); /* Important part */
+    position: relative;
+    top: -10px;
+    right: 0px;
+    display: inline-block;
+    min-width: 22px;
+    height: 22px;
+    text-align:center;
+    color: white;
+    border: 1px solid darkred;
+    border-radius: 10px;
+    background: crimson;
+}
+.tr_hover:hover:not(.rdSelected) input {
+    background-color:aquamarine;
+}
+.tr_hover:hover:not(.rdSelected) {
+    background-color: aquamarine;
 }
